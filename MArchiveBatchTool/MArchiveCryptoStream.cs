@@ -82,6 +82,15 @@ namespace MArchiveBatchTool
 
         public override void Write(byte[] buffer, int offset, int count)
         {
+            // We have to check arguments here because the stream only gets to
+            // them after there's a chance for something to go wrong.
+            if (buffer == null) throw new ArgumentNullException(nameof(buffer));
+            if (offset < 0) throw new ArgumentOutOfRangeException(nameof(offset), "Offset is negative.");
+            if (count < 0) throw new ArgumentOutOfRangeException(nameof(count), "Count is negative.");
+            if (offset >= buffer.Length) throw new ArgumentOutOfRangeException(nameof(offset), "Offset is past the end of buffer.");
+            if (offset + count >= buffer.Length)
+                throw new ArgumentOutOfRangeException(nameof(count), "Offset and count exceeds end of buffer.");
+
             byte[] dup = (byte[])buffer.Clone();
             ProcessBuffer(dup, offset, count, stream.Position);
             stream.Write(dup, offset, count);
