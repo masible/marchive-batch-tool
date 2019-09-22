@@ -101,7 +101,7 @@ namespace MArchiveBatchTool
             for (int i = 0; i < count; ++i)
             {
                 // Don't process first 8 bytes, which is the MArchive header
-                if (streamPosition + offset + i >= 8)
+                if (streamPosition + i >= 8)
                 {
                     buffer[offset + i] ^= keyBuffer[(streamPosition + i - 8) % keyBuffer.Length];
                 }
