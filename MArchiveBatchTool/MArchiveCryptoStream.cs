@@ -87,8 +87,8 @@ namespace MArchiveBatchTool
             if (buffer == null) throw new ArgumentNullException(nameof(buffer));
             if (offset < 0) throw new ArgumentOutOfRangeException(nameof(offset), "Offset is negative.");
             if (count < 0) throw new ArgumentOutOfRangeException(nameof(count), "Count is negative.");
-            if (offset >= buffer.Length) throw new ArgumentOutOfRangeException(nameof(offset), "Offset is past the end of buffer.");
-            if (offset + count >= buffer.Length)
+            if (offset > buffer.Length) throw new ArgumentOutOfRangeException(nameof(offset), "Offset is past the end of buffer.");
+            if (offset + count > buffer.Length)
                 throw new ArgumentOutOfRangeException(nameof(count), "Offset and count exceeds end of buffer.");
 
             byte[] dup = (byte[])buffer.Clone();
