@@ -83,7 +83,8 @@ namespace MArchiveBatchTool
             foreach (var file in Directory.GetFiles(path, "*", SearchOption.AllDirectories))
             {
                 if (Path.GetExtension(file).ToLower() == ".m") continue;
-                if (forceCompress || !noCompressionFilters.Contains(Path.GetDirectoryName(path)))
+                string containingDir = Path.GetFileName(Path.GetDirectoryName(file));
+                if (forceCompress || !noCompressionFilters.Contains(containingDir))
                 {
                     Console.WriteLine($"Compressing {file}");
                     CompressFile(file, keepOrig);
