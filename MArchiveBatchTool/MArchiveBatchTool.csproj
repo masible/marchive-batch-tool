@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="SharpZipLib" Version="1.2.0" />
     <PackageReference Include="Zstandard.Net" Version="1.1.7" />
   </ItemGroup>
 
