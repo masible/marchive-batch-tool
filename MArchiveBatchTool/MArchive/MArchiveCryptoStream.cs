@@ -5,7 +5,7 @@ using System.IO;
 using System.Security.Cryptography;
 using Meisui.Random;
 
-namespace MArchiveBatchTool
+namespace MArchiveBatchTool.MArchive
 {
     public class MArchiveCryptoStream : Stream
     {

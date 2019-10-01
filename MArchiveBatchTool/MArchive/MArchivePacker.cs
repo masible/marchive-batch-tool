@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 
-namespace MArchiveBatchTool
+namespace MArchiveBatchTool.MArchive
 {
     public class MArchivePacker
     {

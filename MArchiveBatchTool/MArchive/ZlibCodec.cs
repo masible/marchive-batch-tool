@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
-namespace MArchiveBatchTool
+namespace MArchiveBatchTool.MArchive
 {
     public class ZlibCodec : IMArchiveCodec
     {

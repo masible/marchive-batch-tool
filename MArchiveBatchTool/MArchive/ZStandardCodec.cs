@@ -5,7 +5,7 @@ using System.IO.Compression;
 using System.Text;
 using Zstandard.Net;
 
-namespace MArchiveBatchTool
+namespace MArchiveBatchTool.MArchive
 {
     public class ZStandardCodec : IMArchiveCodec
     {
