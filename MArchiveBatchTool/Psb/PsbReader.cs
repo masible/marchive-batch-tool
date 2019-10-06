@@ -252,6 +252,12 @@ namespace MArchiveBatchTool.Psb
                 debugWriter.WriteLine();
             }
         }
+        
+        public void DumpDecryptedStream(Stream stream)
+        {
+            this.stream.Seek(0, SeekOrigin.Begin);
+            this.stream.CopyTo(stream);
+        }
 
         public void Close()
         {
@@ -281,8 +287,6 @@ namespace MArchiveBatchTool.Psb
                     return ParseInt(typeId);
                 case PsbTokenType.Long:
                     return ParseLong(typeId);
-                case PsbTokenType.Key:
-                    return ParseKey(typeId);
                 case PsbTokenType.String:
                     return ParseString(typeId);
                 case PsbTokenType.Stream:
@@ -299,6 +303,7 @@ namespace MArchiveBatchTool.Psb
                     return ParseBStream(typeId);
                 case PsbTokenType.Invalid:
                 case PsbTokenType.UInt:
+                case PsbTokenType.Key:
                 default:
                     throw new InvalidDataException("Invalid token type");
             }
@@ -576,35 +581,42 @@ namespace MArchiveBatchTool.Psb
             {
                 debugWriter.WriteLine($"{PsbTokenType.Object} {typeId} <");
                 ++debugWriter.Indent;
-                debugWriter.Write("keyIndexes - ");
             }
-            uint[] keyIndexes = ParseUIntArray();
-            if (debugWriter != null)
-                debugWriter.Write("offsets - ");
-            uint[] offsets = ParseUIntArray();
-            if (debugWriter != null)
-            {
-                --debugWriter.Indent;
-                debugWriter.WriteLine(">");
-                ++debugWriter.Indent;
-            }
-            long seekBase = stream.Position;
-
             JObject obj = new JObject();
-            for (int i = 0; i < keyIndexes.Length; ++i)
+            if (Version == 1)
             {
-                string keyName = keyNames[keyIndexes[i]];
+
+            }
+            else
+            {
+                debugWriter.Write("keyIndexes - ");
+                uint[] keyIndexes = ParseUIntArray();
                 if (debugWriter != null)
-                {
-                    debugWriter.WriteLine("~ {0} ({1}) 0x{2:x8} {{", keyName, keyIndexes[i], offsets[i]);
-                    ++debugWriter.Indent;
-                }
-                stream.Seek(seekBase + offsets[i], SeekOrigin.Begin);
-                obj.Add(keyName, ReadTokenValue());
+                    debugWriter.Write("offsets - ");
+                uint[] offsets = ParseUIntArray();
                 if (debugWriter != null)
                 {
                     --debugWriter.Indent;
-                    debugWriter.WriteLine("}");
+                    debugWriter.WriteLine(">");
+                    ++debugWriter.Indent;
+                }
+                long seekBase = stream.Position;
+
+                for (int i = 0; i < keyIndexes.Length; ++i)
+                {
+                    string keyName = keyNames[keyIndexes[i]];
+                    if (debugWriter != null)
+                    {
+                        debugWriter.WriteLine("~ {0} ({1}) 0x{2:x8} {{", keyName, keyIndexes[i], offsets[i]);
+                        ++debugWriter.Indent;
+                    }
+                    stream.Seek(seekBase + offsets[i], SeekOrigin.Begin);
+                    obj.Add(keyName, ReadTokenValue());
+                    if (debugWriter != null)
+                    {
+                        --debugWriter.Indent;
+                        debugWriter.WriteLine("}");
+                    }
                 }
             }
             if (debugWriter != null)
