@@ -442,8 +442,9 @@ namespace MArchiveBatchTool.Psb
             return arr;
         }
 
-        string ParseKey(byte typeId)
+        string ParseKey()
         {
+            byte typeId = br.ReadByte();
             if (debugWriter != null)
             {
                 debugWriter.WriteLine($"{PsbTokenType.Key} {typeId} <");
@@ -598,11 +599,45 @@ namespace MArchiveBatchTool.Psb
             JObject obj = new JObject();
             if (Version == 1)
             {
+                // Array of offsets, then key and value blob at each offset
+                if (debugWriter != null)
+                    debugWriter.Write("offsets - ");
+                uint[] offsets = ParseUIntArray();
+                if (debugWriter != null)
+                {
+                    --debugWriter.Indent;
+                    debugWriter.WriteLine(">");
+                    ++debugWriter.Indent;
+                }
+                long seekBase = stream.Position;
 
+                for (int i = 0; i < offsets.Length; ++i)
+                {
+                    if (debugWriter != null)
+                    {
+                        debugWriter.WriteLine("~ <");
+                        ++debugWriter.Indent;
+                    }
+                    string key = ParseKey();
+                    if (debugWriter != null)
+                    {
+                        --debugWriter.Indent;
+                        debugWriter.WriteLine("> {");
+                        ++debugWriter.Indent;
+                    }
+                    obj.Add(key, ReadTokenValue());
+                    if (debugWriter != null)
+                    {
+                        --debugWriter.Indent;
+                        debugWriter.WriteLine("}");
+                    }
+                }
             }
             else
             {
-                debugWriter.Write("keyIndexes - ");
+                // Array of key indexes, array of offsets, and token blobs
+                if (debugWriter != null)
+                    debugWriter.Write("keyIndexes - ");
                 uint[] keyIndexes = ParseUIntArray();
                 if (debugWriter != null)
                     debugWriter.Write("offsets - ");
