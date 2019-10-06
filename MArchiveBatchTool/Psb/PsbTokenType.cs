@@ -11,7 +11,7 @@ namespace MArchiveBatchTool.Psb
         Bool,
         Int,
         Long,
-        UIntArray,
+        UInt,
         Key,
         String,
         Stream,

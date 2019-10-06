@@ -20,8 +20,9 @@ namespace MArchiveBatchTool.Psb
             PsbTokenType.Int, PsbTokenType.Int, PsbTokenType.Int, PsbTokenType.Int, PsbTokenType.Int,
             // 64-bit signed integer: 40 to 64 buts
             PsbTokenType.Long, PsbTokenType.Long, PsbTokenType.Long, PsbTokenType.Long,
-            // Array of unsigned ints, used for offsets
-            PsbTokenType.UIntArray, PsbTokenType.UIntArray, PsbTokenType.UIntArray, PsbTokenType.UIntArray,
+            // 32-bit unsigned integer, for use with uint array decoding and not usually encountered
+            // 8 to 32 bits
+            PsbTokenType.UInt, PsbTokenType.UInt, PsbTokenType.UInt, PsbTokenType.UInt,
             // Keys index -> 32-bit unsigned integer, 8 to 32 bits
             PsbTokenType.Key, PsbTokenType.Key, PsbTokenType.Key, PsbTokenType.Key,
             // String index: 8 to 32 bits
@@ -185,23 +186,23 @@ namespace MArchiveBatchTool.Psb
         void LoadStringsOffsets()
         {
             stream.Seek(stringsOffsetsOffset, SeekOrigin.Begin);
-            stringsOffsets = ParseUIntArray(br.ReadByte());
+            stringsOffsets = ParseUIntArray();
         }
 
         void LoadStreamsInfo()
         {
             stream.Seek(streamsOffsetsOffset, SeekOrigin.Begin);
-            streamsOffsets = ParseUIntArray(br.ReadByte());
+            streamsOffsets = ParseUIntArray();
             stream.Seek(streamsSizesOffset, SeekOrigin.Begin);
-            streamsSizes = ParseUIntArray(br.ReadByte());
+            streamsSizes = ParseUIntArray();
         }
 
         void LoadBStreamsInfo()
         {
             stream.Seek(bStreamsOffsetsOffset, SeekOrigin.Begin);
-            bStreamsOffsets = ParseUIntArray(br.ReadByte());
+            bStreamsOffsets = ParseUIntArray();
             stream.Seek(bStreamsSizesOffset, SeekOrigin.Begin);
-            bStreamsSizes = ParseUIntArray(br.ReadByte());
+            bStreamsSizes = ParseUIntArray();
         }
 
         void DebugWriteHeader()
@@ -280,14 +281,6 @@ namespace MArchiveBatchTool.Psb
                     return ParseInt(typeId);
                 case PsbTokenType.Long:
                     return ParseLong(typeId);
-                case PsbTokenType.UIntArray:
-                    var arr = ParseUIntArray(typeId);
-                    JArray jarr = new JArray();
-                    foreach (var item in arr)
-                    {
-                        jarr.Add(item);
-                    }
-                    return jarr;
                 case PsbTokenType.Key:
                     return ParseKey(typeId);
                 case PsbTokenType.String:
@@ -305,6 +298,7 @@ namespace MArchiveBatchTool.Psb
                 case PsbTokenType.BStream:
                     return ParseBStream(typeId);
                 case PsbTokenType.Invalid:
+                case PsbTokenType.UInt:
                 default:
                     throw new InvalidDataException("Invalid token type");
             }
@@ -395,15 +389,16 @@ namespace MArchiveBatchTool.Psb
             }
 
             if (debugWriter != null)
-                debugWriter.WriteLine($"uint {typeId}: {value}");
+                debugWriter.WriteLine($"{PsbTokenType.UInt} {typeId}: {value}");
             return value;
         }
 
-        uint[] ParseUIntArray(byte typeId)
+        uint[] ParseUIntArray()
         {
+            byte typeId = br.ReadByte();
             if (debugWriter != null)
             {
-                debugWriter.WriteLine($"{PsbTokenType.UIntArray} <");
+                debugWriter.WriteLine($"{PsbTokenType.UInt}[] <");
                 ++debugWriter.Indent;
                 debugWriter.Write("count - ");
             }
@@ -553,7 +548,7 @@ namespace MArchiveBatchTool.Psb
                 ++debugWriter.Indent;
                 debugWriter.Write("offsets - ");
             }
-            uint[] offsets = ParseUIntArray(br.ReadByte());
+            uint[] offsets = ParseUIntArray();
             if (debugWriter != null)
             {
                 --debugWriter.Indent;
@@ -583,10 +578,10 @@ namespace MArchiveBatchTool.Psb
                 ++debugWriter.Indent;
                 debugWriter.Write("keyIndexes - ");
             }
-            uint[] keyIndexes = ParseUIntArray(br.ReadByte());
+            uint[] keyIndexes = ParseUIntArray();
             if (debugWriter != null)
                 debugWriter.Write("offsets - ");
-            uint[] offsets = ParseUIntArray(br.ReadByte());
+            uint[] offsets = ParseUIntArray();
             if (debugWriter != null)
             {
                 --debugWriter.Indent;
@@ -668,7 +663,7 @@ namespace MArchiveBatchTool.Psb
                 if (reader.Version == 1)
                 {
                     reader.stream.Seek(reader.keysOffsetsOffset, SeekOrigin.Begin);
-                    uint[] offsets = reader.ParseUIntArray(reader.br.ReadByte());
+                    uint[] offsets = reader.ParseUIntArray();
                     for (uint i = 0; i < offsets.Length; ++i)
                     {
                         reader.stream.Seek(reader.keysBlobOffset + offsets[i], SeekOrigin.Begin);
@@ -679,9 +674,9 @@ namespace MArchiveBatchTool.Psb
                 else
                 {
                     reader.stream.Seek(reader.keysBlobOffset, SeekOrigin.Begin);
-                    valueOffsets = reader.ParseUIntArray(reader.br.ReadByte());
-                    tree = reader.ParseUIntArray(reader.br.ReadByte());
-                    tails = reader.ParseUIntArray(reader.br.ReadByte());
+                    valueOffsets = reader.ParseUIntArray();
+                    tree = reader.ParseUIntArray();
+                    tails = reader.ParseUIntArray();
                 }
             }
 
