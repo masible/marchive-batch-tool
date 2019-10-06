@@ -78,6 +78,7 @@ namespace MArchiveBatchTool.Psb
                     totalRead += bytesToRead;
                     offset += bytesToRead;
                     count -= bytesToRead;
+                    baseStream.Position += bytesToRead;
                 }
             }
             return totalRead;
