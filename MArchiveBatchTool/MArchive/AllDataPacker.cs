@@ -9,8 +9,7 @@ namespace MArchiveBatchTool.MArchive
 {
     public static class AllDataPacker
     {
-        public static void UnpackFiles(string psbPath, string outputPath,
-            IMArchiveCodec codec = null, string seed = null, int keyLength = 0)
+        public static void UnpackFiles(string psbPath, string outputPath, MArchivePacker maPacker = null)
         {
             // Figure out what file we've been given
             if (Path.GetExtension(psbPath).ToLower() == ".bin")
@@ -22,8 +21,8 @@ namespace MArchiveBatchTool.MArchive
             if (Path.GetExtension(psbPath).ToLower() == ".m")
             {
                 // Decompress .m file
-                MArchivePacker map = new MArchivePacker(codec, seed, keyLength);
-                map.DecompressFile(psbPath, true);
+                if (maPacker == null) throw new ArgumentNullException(nameof(maPacker));
+                maPacker.DecompressFile(psbPath, true);
                 psbPath = Path.ChangeExtension(psbPath, null);
             }
 
