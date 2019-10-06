@@ -7,7 +7,7 @@ using MArchiveBatchTool.Models;
 
 namespace MArchiveBatchTool.MArchive
 {
-    class AllDataPacker
+    public static class AllDataPacker
     {
         public static void UnpackFiles(string psbPath, string outputPath,
             IMArchiveCodec codec = null, string seed = null, int keyLength = 0)
