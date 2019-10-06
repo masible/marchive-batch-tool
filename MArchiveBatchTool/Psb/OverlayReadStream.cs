@@ -11,6 +11,7 @@ namespace MArchiveBatchTool.Psb
         byte[] decryptedData;
         long overlayStart;
         long overlayEnd;
+        bool isDisposed;
 
         public OverlayReadStream(Stream baseStream, uint overlayStart, uint overlayEnd, IPsbFilter filter)
         {
@@ -49,6 +50,8 @@ namespace MArchiveBatchTool.Psb
             if (offset > buffer.Length) throw new ArgumentOutOfRangeException(nameof(offset), "Offset is past the end of buffer.");
             if (offset + count > buffer.Length)
                 throw new ArgumentOutOfRangeException(nameof(count), "Offset and count exceeds end of buffer.");
+
+            if (isDisposed) throw new ObjectDisposedException(GetType().FullName);
 
             int totalRead = 0;
             while (count > 0)
@@ -103,6 +106,7 @@ namespace MArchiveBatchTool.Psb
         {
             if (disposing)
             {
+                isDisposed = true;
                 baseStream.Dispose();
             }
             base.Dispose(disposing);

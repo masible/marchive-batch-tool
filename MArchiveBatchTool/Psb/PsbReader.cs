@@ -43,6 +43,7 @@ namespace MArchiveBatchTool.Psb
         IPsbFilter filter;
         KeyNamesReader keyNames;
         IndentedTextWriter debugWriter;
+        bool disposed;
 
         // Header values
         uint keysOffsetsOffset;
@@ -71,6 +72,7 @@ namespace MArchiveBatchTool.Psb
         {
             get
             {
+                CheckDisposed();
                 if (root == null)
                 {
                     if (debugWriter != null)
@@ -253,15 +255,26 @@ namespace MArchiveBatchTool.Psb
             }
         }
         
+        void CheckDisposed()
+        {
+            if (disposed)
+                throw new ObjectDisposedException(GetType().FullName);
+        }
+
         public void DumpDecryptedStream(Stream stream)
         {
+            CheckDisposed();
             this.stream.Seek(0, SeekOrigin.Begin);
             this.stream.CopyTo(stream);
         }
 
         public void Close()
         {
+            disposed = true;
             stream.Close();
+            root = null;
+            StreamCache.Clear();
+            BStreamCache.Clear();
         }
 
         public void Dispose()
