@@ -228,7 +228,7 @@ namespace MArchiveBatchTool.Psb
                 debugWriter.WriteLine($"{nameof(bStreamsBlobOffset)}: {bStreamsBlobOffset}");
             }
             debugWriter.WriteLine();
-            debugWriter.Write("# Blob Tables");
+            debugWriter.WriteLine("# Blob Tables");
             debugWriter.WriteLine();
             debugWriter.WriteLine($"{nameof(stringsOffsets)}:");
             foreach (var o in stringsOffsets)
