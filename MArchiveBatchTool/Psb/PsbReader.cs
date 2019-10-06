@@ -613,6 +613,7 @@ namespace MArchiveBatchTool.Psb
 
                 for (int i = 0; i < offsets.Length; ++i)
                 {
+                    stream.Seek(seekBase + offsets[i], SeekOrigin.Begin);
                     if (debugWriter != null)
                     {
                         debugWriter.WriteLine("~ <");
