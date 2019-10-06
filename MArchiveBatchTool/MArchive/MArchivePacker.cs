@@ -43,7 +43,7 @@ namespace MArchiveBatchTool.MArchive
                 int decompressedLength = br.ReadInt32();
 
                 using (FileStream ofs = File.Create(Path.ChangeExtension(path, null)))
-                using (MArchiveCryptoStream cs = new MArchiveCryptoStream(fs, Path.GetFileName(path), seed, keyLength))
+                using (MArchiveCryptoStream cs = new MArchiveCryptoStream(fs, path, seed, keyLength))
                 using (Stream decompStream = codec.GetDecompressionStream(cs))
                 {
                     decompStream.CopyTo(ofs);
