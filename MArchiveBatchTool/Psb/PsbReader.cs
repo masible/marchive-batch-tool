@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.CodeDom.Compiler;
 using Newtonsoft.Json.Linq;
 using ICSharpCode.SharpZipLib.Checksum;
 
@@ -40,6 +41,7 @@ namespace MArchiveBatchTool.Psb
         BinaryReader br;
         IPsbFilter filter;
         KeyNamesReader keyNames;
+        IndentedTextWriter debugWriter;
 
         // Header values
         uint keysOffsetsOffset;
@@ -70,6 +72,12 @@ namespace MArchiveBatchTool.Psb
             {
                 if (root == null)
                 {
+                    if (debugWriter != null)
+                    {
+                        debugWriter.WriteLine();
+                        debugWriter.WriteLine("# Root");
+                        debugWriter.WriteLine();
+                    }
                     stream.Seek(rootOffset, SeekOrigin.Begin);
                     root = ReadTokenValue();
                 }
@@ -79,7 +87,7 @@ namespace MArchiveBatchTool.Psb
         public Dictionary<uint, JStream> StreamCache { get; } = new Dictionary<uint, JStream>();
         public Dictionary<uint, JStream> BStreamCache { get; } = new Dictionary<uint, JStream>();
 
-        public PsbReader(Stream stream, IPsbFilter filter)
+        public PsbReader(Stream stream, IPsbFilter filter = null, StreamWriter debugWriter = null)
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
             if (!stream.CanSeek) throw new ArgumentException("Stream cannot be seeked.", nameof(stream));
@@ -98,6 +106,10 @@ namespace MArchiveBatchTool.Psb
             LoadStringsOffsets();
             LoadStreamsInfo();
             if (Version >= 4) LoadBStreamsInfo();
+            // Move this down here so I don't get output while arrays are being read
+            if (debugWriter != null)
+                this.debugWriter = new IndentedTextWriter(debugWriter);
+            DebugWriteHeader();
         }
 
         byte[] VerifyHeader()
@@ -192,6 +204,54 @@ namespace MArchiveBatchTool.Psb
             bStreamsSizes = ParseUIntArray(br.ReadByte());
         }
 
+        void DebugWriteHeader()
+        {
+            if (debugWriter == null) return;
+            debugWriter.WriteLine("PSB");
+            debugWriter.WriteLine($"{nameof(Version)}: {Version}");
+            debugWriter.WriteLine($"{nameof(Flags)}: {Flags}");
+            debugWriter.WriteLine($"{nameof(keysOffsetsOffset)}: {keysOffsetsOffset}");
+            debugWriter.WriteLine($"{nameof(keysBlobOffset)}: {keysBlobOffset}");
+            debugWriter.WriteLine($"{nameof(stringsOffsetsOffset)}: {stringsOffsetsOffset}");
+            debugWriter.WriteLine($"{nameof(stringsBlobOffset)}: {stringsBlobOffset}");
+            debugWriter.WriteLine($"{nameof(streamsOffsetsOffset)}: {streamsOffsetsOffset}");
+            debugWriter.WriteLine($"{nameof(streamsSizesOffset)}: {streamsSizesOffset}");
+            debugWriter.WriteLine($"{nameof(streamsBlobOffset)}: {streamsBlobOffset}");
+            debugWriter.WriteLine($"{nameof(rootOffset)}: {rootOffset}");
+            if (Version >= 4)
+            {
+                debugWriter.WriteLine($"{nameof(bStreamsOffsetsOffset)}: {bStreamsOffsetsOffset}");
+                debugWriter.WriteLine($"{nameof(bStreamsSizesOffset)}: {bStreamsSizesOffset}");
+                debugWriter.WriteLine($"{nameof(bStreamsBlobOffset)}: {bStreamsBlobOffset}");
+            }
+            debugWriter.WriteLine();
+            debugWriter.Write("# Blob Tables");
+            debugWriter.WriteLine();
+            debugWriter.WriteLine($"{nameof(stringsOffsets)}:");
+            foreach (var o in stringsOffsets)
+                debugWriter.WriteLine("{0:x8}", o);
+            debugWriter.WriteLine();
+            debugWriter.WriteLine($"{nameof(streamsOffsets)}:");
+            foreach (var o in streamsOffsets)
+                debugWriter.WriteLine("{0:x8}", o);
+            debugWriter.WriteLine();
+            debugWriter.WriteLine($"{nameof(streamsSizes)}:");
+            foreach (var o in streamsSizes)
+                debugWriter.WriteLine("{0:x8}", o);
+            debugWriter.WriteLine();
+            if (Version >= 4)
+            {
+                debugWriter.WriteLine($"{nameof(bStreamsOffsets)}:");
+                foreach (var o in bStreamsOffsets)
+                    debugWriter.WriteLine("{0:x8}", o);
+                debugWriter.WriteLine();
+                debugWriter.WriteLine($"{nameof(bStreamsSizes)}:");
+                foreach (var o in bStreamsSizes)
+                    debugWriter.WriteLine("{0:x8}", o);
+                debugWriter.WriteLine();
+            }
+        }
+
         public void Close()
         {
             stream.Close();
@@ -211,6 +271,8 @@ namespace MArchiveBatchTool.Psb
             switch (IdToTypeMapping[typeId])
             {
                 case PsbTokenType.Null:
+                    if (debugWriter != null)
+                        debugWriter.WriteLine($"{PsbTokenType.Null} {typeId}: null");
                     return JValue.CreateNull();
                 case PsbTokenType.Bool:
                     return ParseBool(typeId);
@@ -250,93 +312,190 @@ namespace MArchiveBatchTool.Psb
 
         bool ParseBool(byte typeId)
         {
-            return typeId == 2;
+            bool value = typeId == 2;
+            if (debugWriter != null)
+                debugWriter.WriteLine($"{PsbTokenType.Bool} {typeId}: {value}");
+            return value;
         }
 
         int ParseInt(byte typeId)
         {
+            int value;
             switch (typeId)
             {
                 case 4:
-                    return 0;
+                    value = 0;
+                    break;
                 case 5:
-                    return br.ReadSByte();
+                    value = br.ReadSByte();
+                    break;
                 case 6:
-                    return br.ReadInt16();
+                    value = br.ReadInt16();
+                    break;
                 case 7:
-                    return br.ReadUInt16() | (br.ReadSByte() << 16);
+                    value = br.ReadUInt16() | (br.ReadSByte() << 16);
+                    break;
                 case 8:
-                    return br.ReadInt32();
+                    value = br.ReadInt32();
+                    break;
                 default:
                     throw new ArgumentException("Dispatched to incorrect parser.", nameof(typeId));
             }
+
+            if (debugWriter != null)
+                debugWriter.WriteLine($"{PsbTokenType.Int} {typeId}: {value}");
+            return value;
         }
 
         long ParseLong(byte typeId)
         {
+            long value;
             switch (typeId)
             {
                 case 9:
-                    return br.ReadUInt32() | (br.ReadSByte() << 32);
+                    value = br.ReadUInt32() | (br.ReadSByte() << 32);
+                    break;
                 case 10:
-                    return br.ReadUInt32() | (br.ReadInt16() << 32);
+                    value = br.ReadUInt32() | (br.ReadInt16() << 32);
+                    break;
                 case 11:
-                    return br.ReadUInt32() | (br.ReadUInt16() << 32) | (br.ReadSByte() << 48);
+                    value = br.ReadUInt32() | (br.ReadUInt16() << 32) | (br.ReadSByte() << 48);
+                    break;
                 case 12:
-                    return br.ReadInt64();
+                    value = br.ReadInt64();
+                    break;
                 default:
                     throw new ArgumentException("Dispatched to incorrect parser.", nameof(typeId));
             }
+
+            if (debugWriter != null)
+                debugWriter.WriteLine($"{PsbTokenType.Long} {typeId}: {value}");
+            return value;
         }
 
         uint ParseUInt(byte typeId)
         {
+            uint value;
             switch (typeId)
             {
                 case 13:
-                    return br.ReadByte();
+                    value = br.ReadByte();
+                    break;
                 case 14:
-                    return br.ReadUInt16();
+                    value = br.ReadUInt16();
+                    break;
                 case 15:
-                    return (uint)(br.ReadUInt16() | (br.ReadByte() << 16));
+                    value = (uint)(br.ReadUInt16() | (br.ReadByte() << 16));
+                    break;
                 case 16:
-                    return br.ReadUInt32();
+                    value = br.ReadUInt32();
+                    break;
                 default:
                     throw new ArgumentException("Dispatched to incorrect parser.", nameof(typeId));
             }
+
+            if (debugWriter != null)
+                debugWriter.WriteLine($"uint {typeId}: {value}");
+            return value;
         }
 
         uint[] ParseUIntArray(byte typeId)
         {
+            if (debugWriter != null)
+            {
+                debugWriter.WriteLine($"{PsbTokenType.UIntArray} <");
+                ++debugWriter.Indent;
+                debugWriter.Write("count - ");
+            }
             uint count = ParseUInt(typeId);
             uint[] arr = new uint[count];
             byte valTypeId = br.ReadByte();
+            if (debugWriter != null)
+            {
+                debugWriter.WriteLine($"valTypeId - {valTypeId}");
+                --debugWriter.Indent;
+                debugWriter.WriteLine(">");
+                ++debugWriter.Indent;
+            }
             for (int i = 0; i < arr.Length; ++i)
             {
                 arr[i] = ParseUInt(valTypeId);
             }
+            if (debugWriter != null)
+            {
+                --debugWriter.Indent;
+            }
+
             return arr;
         }
 
         string ParseKey(byte typeId)
         {
+            if (debugWriter != null)
+            {
+                debugWriter.WriteLine($"{PsbTokenType.Key} {typeId} <");
+                ++debugWriter.Indent;
+                debugWriter.Write("index - ");
+            }
             uint keyIndex = ParseUInt((byte)(typeId - 4));
-            return keyNames[keyIndex];
+            if (debugWriter != null)
+            {
+                --debugWriter.Indent;
+                debugWriter.WriteLine(">");
+                ++debugWriter.Indent;
+            }
+            string value = keyNames[keyIndex];
+            if (debugWriter != null)
+            {
+                debugWriter.WriteLine(value);
+                --debugWriter.Indent;
+            }
+            return value;
         }
 
         string ParseString(byte typeId)
         {
+            if (debugWriter != null)
+            {
+                debugWriter.WriteLine($"{PsbTokenType.String} {typeId} <");
+                ++debugWriter.Indent;
+                debugWriter.Write("index - ");
+            }
             uint stringIndex = ParseUInt((byte)(typeId - 8));
+            if (debugWriter != null)
+            {
+                --debugWriter.Indent;
+                debugWriter.WriteLine(">");
+                ++debugWriter.Indent;
+            }
             long oldPos = stream.Position;
             stream.Seek(stringsBlobOffset + stringsOffsets[stringIndex], SeekOrigin.Begin);
             string s = ReadStringZ();
             stream.Position = oldPos;
+            if (debugWriter != null)
+            {
+                debugWriter.WriteLine(s);
+                --debugWriter.Indent;
+            }
             return s;
         }
 
         JStream ParseStream(byte typeId)
         {
+            if (debugWriter != null)
+            {
+                debugWriter.WriteLine($"{PsbTokenType.Stream} {typeId} <");
+                ++debugWriter.Indent;
+                debugWriter.Write("index - ");
+            }
             uint index = ParseUInt((byte)(typeId - 12));
+            if (debugWriter != null)
+            {
+                debugWriter.WriteLine("* offset - 0x{0:x8}", streamsOffsets[index]);
+                debugWriter.WriteLine("* length - 0x{0:x8}", streamsSizes[index]);
+                --debugWriter.Indent;
+                debugWriter.WriteLine(">");
+            }
             long oldPos = stream.Position;
             stream.Seek(streamsBlobOffset + streamsOffsets[index], SeekOrigin.Begin);
             byte[] data = br.ReadBytes((int)streamsSizes[index]);
@@ -348,26 +507,39 @@ namespace MArchiveBatchTool.Psb
 
         float ParseFloat(byte typeId)
         {
+            float value;
             switch (typeId)
             {
                 case 29:
-                    return 0f;
+                    value = 0f;
+                    break;
                 case 30:
-                    return br.ReadSingle();
+                    value = br.ReadSingle();
+                    break;
                 default:
                     throw new ArgumentException("Dispatched to incorrect parser.", nameof(typeId));
             }
+
+            if (debugWriter != null)
+                debugWriter.WriteLine($"{PsbTokenType.Float} {typeId}: {value}");
+            return value;
         }
 
         double ParseDouble(byte typeId)
         {
+            double value;
             switch (typeId)
             {
                 case 31:
-                    return br.ReadDouble();
+                    value = br.ReadDouble();
+                    break;
                 default:
                     throw new ArgumentException("Dispatched to incorrect parser.", nameof(typeId));
             }
+
+            if (debugWriter != null)
+                debugWriter.WriteLine($"{PsbTokenType.Double} {typeId}: {value}");
+            return value;
         }
 
         JArray ParseTokenArray(byte typeId)
@@ -375,7 +547,19 @@ namespace MArchiveBatchTool.Psb
             if (typeId != 32)
                 throw new ArgumentException("Dispatched to incorrect parser.", nameof(typeId));
 
+            if (debugWriter != null)
+            {
+                debugWriter.WriteLine($"{PsbTokenType.TokenArray} {typeId} <");
+                ++debugWriter.Indent;
+                debugWriter.Write("offsets - ");
+            }
             uint[] offsets = ParseUIntArray(br.ReadByte());
+            if (debugWriter != null)
+            {
+                --debugWriter.Indent;
+                debugWriter.WriteLine(">");
+                ++debugWriter.Indent;
+            }
             long seekBase = stream.Position;
             JArray jarr = new JArray();
             for (int i = 0; i < offsets.Length; ++i)
@@ -383,6 +567,8 @@ namespace MArchiveBatchTool.Psb
                 stream.Seek(seekBase + offsets[i], SeekOrigin.Begin);
                 jarr.Add(ReadTokenValue());
             }
+            if (debugWriter != null)
+                --debugWriter.Indent;
             return jarr;
         }
 
@@ -391,23 +577,63 @@ namespace MArchiveBatchTool.Psb
             if (typeId != 33)
                 throw new ArgumentException("Dispatched to incorrect parser.", nameof(typeId));
 
+            if (debugWriter != null)
+            {
+                debugWriter.WriteLine($"{PsbTokenType.Object} {typeId} <");
+                ++debugWriter.Indent;
+                debugWriter.Write("keyIndexes - ");
+            }
             uint[] keyIndexes = ParseUIntArray(br.ReadByte());
+            if (debugWriter != null)
+                debugWriter.Write("offsets - ");
             uint[] offsets = ParseUIntArray(br.ReadByte());
+            if (debugWriter != null)
+            {
+                --debugWriter.Indent;
+                debugWriter.WriteLine(">");
+                ++debugWriter.Indent;
+            }
             long seekBase = stream.Position;
 
             JObject obj = new JObject();
             for (int i = 0; i < keyIndexes.Length; ++i)
             {
                 string keyName = keyNames[keyIndexes[i]];
+                if (debugWriter != null)
+                {
+                    debugWriter.WriteLine("~ {0} ({1}) 0x{2:x8} {{", keyName, keyIndexes[i], offsets[i]);
+                    ++debugWriter.Indent;
+                }
                 stream.Seek(seekBase + offsets[i], SeekOrigin.Begin);
                 obj.Add(keyName, ReadTokenValue());
+                if (debugWriter != null)
+                {
+                    --debugWriter.Indent;
+                    debugWriter.WriteLine("}");
+                }
             }
+            if (debugWriter != null)
+                --debugWriter.Indent;
+
             return obj;
         }
 
         JStream ParseBStream(byte typeId)
         {
+            if (debugWriter != null)
+            {
+                debugWriter.WriteLine($"{PsbTokenType.BStream} {typeId} <");
+                ++debugWriter.Indent;
+                debugWriter.Write("index - ");
+            }
             uint index = ParseUInt((byte)(typeId - 21));
+            if (debugWriter != null)
+            {
+                debugWriter.WriteLine("* offset - 0x{0:x8}", bStreamsOffsets[index]);
+                debugWriter.WriteLine("* length - 0x{0:x8}", bStreamsSizes[index]);
+                --debugWriter.Indent;
+                debugWriter.WriteLine(">");
+            }
             long oldPos = stream.Position;
             stream.Seek(bStreamsBlobOffset + bStreamsOffsets[index], SeekOrigin.Begin);
             byte[] data = br.ReadBytes((int)bStreamsSizes[index]);
