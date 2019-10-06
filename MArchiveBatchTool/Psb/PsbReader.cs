@@ -385,7 +385,7 @@ namespace MArchiveBatchTool.Psb
             return value;
         }
 
-        uint ParseUInt(byte typeId)
+        uint ParseUInt(byte typeId, bool debugWriteType = false)
         {
             uint value;
             switch (typeId)
@@ -407,7 +407,12 @@ namespace MArchiveBatchTool.Psb
             }
 
             if (debugWriter != null)
-                debugWriter.WriteLine($"{PsbTokenType.UInt} {typeId}: {value}");
+            {
+                if (debugWriteType)
+                    debugWriter.WriteLine($"{PsbTokenType.UInt} {typeId}: {value}");
+                else
+                    debugWriter.WriteLine(value);
+            }
             return value;
         }
 
@@ -420,7 +425,7 @@ namespace MArchiveBatchTool.Psb
                 ++debugWriter.Indent;
                 debugWriter.Write("count - ");
             }
-            uint count = ParseUInt(typeId);
+            uint count = ParseUInt(typeId, true);
             uint[] arr = new uint[count];
             byte valTypeId = br.ReadByte();
             if (debugWriter != null)
