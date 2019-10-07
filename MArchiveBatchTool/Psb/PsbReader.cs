@@ -834,8 +834,6 @@ namespace MArchiveBatchTool.Psb
                     regularNode.Index = 0;
                     regularNode.ParentIndex = tree[regularNode.Index];
                     regularNode.ValueOffset = valueOffsets[regularNode.Index];
-                    if (regularNode.Index != 0)
-                        regularNode.Character = (byte)(regularNode.Index - valueOffsets[regularNode.ParentIndex]);
                     nodes.Add(regularNode.Index, regularNode);
                 }
 
