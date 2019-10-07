@@ -5,6 +5,7 @@ using System.IO;
 using System.CodeDom.Compiler;
 using Newtonsoft.Json.Linq;
 using ICSharpCode.SharpZipLib.Checksum;
+using MArchiveBatchTool.Psb.Writing;
 
 namespace MArchiveBatchTool.Psb
 {
@@ -89,6 +90,7 @@ namespace MArchiveBatchTool.Psb
         }
         public Dictionary<uint, JStream> StreamCache { get; } = new Dictionary<uint, JStream>();
         public Dictionary<uint, JStream> BStreamCache { get; } = new Dictionary<uint, JStream>();
+        internal KeyNamesReader KeyNames => keyNames;
 
         public PsbReader(Stream stream, IPsbFilter filter = null, StreamWriter debugWriter = null)
         {
@@ -266,6 +268,11 @@ namespace MArchiveBatchTool.Psb
             CheckDisposed();
             this.stream.Seek(0, SeekOrigin.Begin);
             this.stream.CopyTo(stream);
+        }
+
+        public Dictionary<uint, NameNode> GenerateNameNodes()
+        {
+            return keyNames.GenerateNodes();
         }
 
         public void Close()
@@ -717,7 +724,7 @@ namespace MArchiveBatchTool.Psb
         }
         #endregion
 
-        class KeyNamesReader
+        internal class KeyNamesReader
         {
             uint[] valueOffsets;
             uint[] tree;
@@ -746,6 +753,15 @@ namespace MArchiveBatchTool.Psb
                 }
             }
 
+            internal KeyNamesReader(uint[] valueOffsets, uint[] tree, uint[] tails)
+            {
+                this.valueOffsets = valueOffsets ?? throw new ArgumentNullException(nameof(valueOffsets));
+                this.tree = tree ?? throw new ArgumentNullException(nameof(tree));
+                this.tails = tails ?? throw new ArgumentNullException(nameof(tails));
+            }
+
+            public int Count => tails?.Length ?? cache.Count;
+
             public string this[uint index]
             {
                 get
@@ -756,7 +772,7 @@ namespace MArchiveBatchTool.Psb
                     }
 
                     List<byte> buffer = new List<byte>();
-                    uint current = tree[tails[index]];
+                    uint current = tree[tails[index]]; // Reading from tree skips the terminating null char
                     while (current != 0)
                     {
                         uint parent = tree[current];
@@ -769,6 +785,61 @@ namespace MArchiveBatchTool.Psb
                     cache.Add(index, s);
                     return s;
                 }
+            }
+
+            public Dictionary<uint, NameNode> GenerateNodes()
+            {
+                if (tree == null) throw new InvalidOperationException("Names are stored flat, not in a tree.");
+                Dictionary<uint, NameNode> nodes = new Dictionary<uint, NameNode>();
+                for (uint i = 0; i < tails.Length; ++i)
+                {
+                    TerminalNameNode tailNode = new TerminalNameNode();
+                    tailNode.Index = tails[i];
+                    tailNode.TailIndex = i;
+                    // Quick check to ensure
+                    if (valueOffsets[tailNode.Index] != i) throw new Exception();
+                    tailNode.ParentIndex = tree[tailNode.Index];
+                    tailNode.Character = (byte)(tailNode.Index - valueOffsets[tailNode.ParentIndex]);
+                    nodes.Add(tailNode.Index, tailNode);
+
+                    uint parentIndex = tailNode.ParentIndex;
+                    while (!nodes.ContainsKey(parentIndex))
+                    {
+                        RegularNameNode regularNode = new RegularNameNode();
+                        regularNode.Index = parentIndex;
+                        regularNode.ParentIndex = tree[regularNode.Index];
+                        regularNode.ValueOffset = valueOffsets[regularNode.Index];
+                        if (regularNode.Index != 0)
+                            regularNode.Character = (byte)(regularNode.Index - valueOffsets[regularNode.ParentIndex]);
+                        nodes.Add(regularNode.Index, regularNode);
+                        parentIndex = regularNode.ParentIndex;
+                    }
+                }
+
+                // Link it up
+                foreach (var node in nodes.Values)
+                {
+                    if (node.Index != 0)
+                    {
+                        node.Parent = nodes[node.ParentIndex];
+                        var parent = node.Parent as RegularNameNode;
+                        parent.Children.Add(node.Character, node);
+                    }
+                }
+
+                if (nodes.Count == 0)
+                {
+                    // Create root node if we don't have any strings
+                    RegularNameNode regularNode = new RegularNameNode();
+                    regularNode.Index = 0;
+                    regularNode.ParentIndex = tree[regularNode.Index];
+                    regularNode.ValueOffset = valueOffsets[regularNode.Index];
+                    if (regularNode.Index != 0)
+                        regularNode.Character = (byte)(regularNode.Index - valueOffsets[regularNode.ParentIndex]);
+                    nodes.Add(regularNode.Index, regularNode);
+                }
+
+                return nodes;
             }
         }
     }
