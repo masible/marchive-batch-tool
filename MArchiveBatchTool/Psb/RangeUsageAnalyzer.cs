@@ -120,7 +120,7 @@ namespace MArchiveBatchTool.Psb
             if (writer == null) throw new NullReferenceException(nameof(writer));
 
             // Write first line: which slots are occupied in the entire range
-            char[] firstLine = Enumerable.Repeat(' ', coverageMap.Count).ToArray();
+            char[] firstLine = Enumerable.Repeat('!', coverageMap.Count).ToArray();
             foreach (var node in nodeCache)
                 firstLine[node.Index] = '*';
             writer.WriteLine(new string(firstLine));
