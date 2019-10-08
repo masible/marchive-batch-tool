@@ -98,7 +98,7 @@ namespace MArchiveBatchTool.Psb
 
         public static bool TestKeyNamesGeneration(TextWriter writer, PsbReader reader)
         {
-            KeyNamesGenerator generator = new KeyNamesGenerator(new StandardKeyNamesEncoder());
+            KeyNamesGenerator generator = new KeyNamesGenerator(new StandardKeyNamesEncoder() { OutputDebug = false });
             var keyNames = reader.KeyNames;
             for (uint i = 0; i < keyNames.Count; ++i)
             {
