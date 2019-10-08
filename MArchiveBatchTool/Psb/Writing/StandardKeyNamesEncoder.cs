@@ -62,11 +62,13 @@ namespace MArchiveBatchTool.Psb.Writing
             IsProcessed = false;
             usedRangeMap = Enumerable.Repeat(false, totalNodes).ToList();
             minFreeSlot = 0;
+            maxFreeSlot = 0;
 
             // Special case: root always occupies 0
             root.Index = 0;
             usedRangeMap[0] = true;
             ++minFreeSlot;
+            ++maxFreeSlot;
 
             ProcessNode(root);
             IsProcessed = true;
