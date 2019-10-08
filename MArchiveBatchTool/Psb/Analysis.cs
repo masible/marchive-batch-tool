@@ -63,5 +63,37 @@ namespace MArchiveBatchTool.Psb
                 --writer.Indent;
             }
         }
+
+        public static void GenerateRangeUsageVisualization(TextWriter writer, PsbReader reader)
+        {
+            RangeUsageAnalyzer analyzer = new RangeUsageAnalyzer();
+            foreach (var node in reader.GenerateNameNodes().Values)
+            {
+                RegularNameNode regularNode = node as RegularNameNode;
+                if (regularNode != null)
+                {
+                    var regularChildren = regularNode.Children.Values.Where(x => x is RegularNameNode).OrderBy(x => x.Index);
+                    if (regularChildren.Count() > 0)
+                    {
+                        var minIndex = regularChildren.First().Index;
+                        var maxIndex = regularChildren.Last().Index;
+                        analyzer.AddRange(node.Index, minIndex, maxIndex, false);
+                    }
+
+                    var terminator = regularNode.Children.Values.Where(x => x is TerminalNameNode).FirstOrDefault();
+                    if (terminator != null)
+                    {
+                        analyzer.AddRange(node.Index, terminator.Index, terminator.Index, false);
+                    }
+                }
+                else
+                {
+                    analyzer.AddRange(node.Index, node.Index, node.Index, true);
+                }
+            }
+
+            analyzer.OrderNodes();
+            analyzer.WriteVisualization(writer);
+        }
     }
 }
