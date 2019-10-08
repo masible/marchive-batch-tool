@@ -81,6 +81,25 @@ namespace MArchiveBatchTool
                         File.WriteAllBytes(Path.Combine(streamsDirPath, "bstream_" + js.Key), js.Value.BinaryData);
                     }
                 }
+                if (writeDebug)
+                {
+                    using (StreamWriter sw = File.CreateText(psbPath + ".keys.gv"))
+                    {
+                        Analysis.GenerateNameGraphDot(sw, psbReader);
+                    }
+                    using (StreamWriter sw = File.CreateText(psbPath + ".keyranges.txt"))
+                    {
+                        Analysis.GenerateNameRanges(sw, psbReader);
+                    }
+                    using (StreamWriter sw = File.CreateText(psbPath + ".rangevis.txt"))
+                    {
+                        Analysis.GenerateRangeUsageVisualization(sw, psbReader);
+                    }
+                    using (StreamWriter sw = File.CreateText(psbPath + ".keygen.txt"))
+                    {
+                        Analysis.TestKeyNamesGeneration(sw, psbReader);
+                    }
+                }
             }
         }
     }

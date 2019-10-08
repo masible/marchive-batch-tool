@@ -61,7 +61,7 @@ namespace MArchiveBatchTool.Psb.Writing
             // Can't be bothered to reset everything, so this is a one-time only operation
             if (IsGenerated) throw new InvalidOperationException("Tree already generated.");
             // 1. Sort strings
-            strings.Sort();
+            strings.Sort((x, y) => string.CompareOrdinal(x, y));
             // 2. Make root
             root = GetOrCreateRegularNameNode(null, 0);
             // 3. Build the character tree
@@ -70,8 +70,8 @@ namespace MArchiveBatchTool.Psb.Writing
             // 4. Use encoder to fill out indexes and stuff
             encoder.Process(root, nodeCache.Count);
             // 5. Create the output arrays
-            valueOffsets = new uint[nodeCache.Count];
-            tree = new uint[nodeCache.Count];
+            valueOffsets = new uint[encoder.TotalSlots];
+            tree = new uint[encoder.TotalSlots];
             tails = new uint[strings.Count];
             foreach (var node in nodeCache)
             {
@@ -79,9 +79,9 @@ namespace MArchiveBatchTool.Psb.Writing
                 var regularNode = node as RegularNameNode;
                 if (regularNode != null)
                     valueOffsets[regularNode.Index] = regularNode.ValueOffset;
-                var termNode = node as TerminalNameNode;
-                if (termNode != null)
+                else
                 {
+                    var termNode = node as TerminalNameNode;
                     tails[termNode.TailIndex] = termNode.Index;
                     valueOffsets[termNode.Index] = termNode.TailIndex;
                 }

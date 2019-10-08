@@ -6,6 +6,8 @@ namespace MArchiveBatchTool.Psb.Writing
 {
     public interface IKeyNamesEncoder
     {
+        bool Processed { get; }
+        int TotalSlots { get; }
         void Process(RegularNameNode root, int totalNodes);
     }
 }

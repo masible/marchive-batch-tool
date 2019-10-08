@@ -95,5 +95,32 @@ namespace MArchiveBatchTool.Psb
             analyzer.OrderNodes();
             analyzer.WriteVisualization(writer);
         }
+
+        public static bool TestKeyNamesGeneration(TextWriter writer, PsbReader reader)
+        {
+            KeyNamesGenerator generator = new KeyNamesGenerator(new StandardKeyNamesEncoder());
+            var keyNames = reader.KeyNames;
+            for (uint i = 0; i < keyNames.Count; ++i)
+            {
+                writer.WriteLine(keyNames[i]);
+                generator.AddString(keyNames[i]);
+            }
+            generator.Generate();
+            writer.WriteLine("--------");
+            var keyNamesNew = new PsbReader.KeyNamesReader(generator.ValueOffsets, generator.Tree, generator.Tails);
+            for (uint i = 0; i < keyNamesNew.Count; ++i)
+            {
+                writer.WriteLine(keyNamesNew[i]);
+            }
+
+            for (uint i = 0; i < keyNames.Count; ++i)
+            {
+                if (keyNamesNew[i] != keyNames[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 }
