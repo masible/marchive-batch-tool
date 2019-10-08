@@ -11,13 +11,13 @@ namespace MArchiveBatchTool.Psb.Writing
         uint minFreeSlot;
         List<uint> cachedRange = new List<uint>();
 
-        public bool Processed { get; private set; }
+        public bool IsProcessed { get; private set; }
 
         public int TotalSlots
         {
             get
             {
-                if (!Processed) throw new InvalidOperationException("Cannot get total slots until processed.");
+                if (!IsProcessed) throw new InvalidOperationException("Cannot get total slots until processed.");
                 return usedRangeMap.Count;
             }
         }
@@ -38,7 +38,7 @@ namespace MArchiveBatchTool.Psb.Writing
             //    and after that child nodes are processed in depth-first order
             // 6. Gaps are OK
 
-            Processed = false;
+            IsProcessed = false;
             usedRangeMap = Enumerable.Repeat(false, totalNodes).ToList();
             minFreeSlot = 0;
 
@@ -48,7 +48,7 @@ namespace MArchiveBatchTool.Psb.Writing
             ++minFreeSlot;
 
             ProcessNode(root);
-            Processed = true;
+            IsProcessed = true;
         }
 
         void ProcessNode(RegularNameNode currNode)
