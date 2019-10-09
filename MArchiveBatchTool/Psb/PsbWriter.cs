@@ -442,12 +442,24 @@ namespace MArchiveBatchTool.Psb
                 case JTokenType.Comment:
                     break;
                 case JTokenType.Float:
-                    // Determine whether to write float or double based on number of digits
-                    var floatString = ((JValue)token).ToString();
-                    if (floatString.Length <= 9)
-                        Write(bw, (float)token);
+                    // Determine whether to write float or double based on whether it
+                    // fits in a float and the number of digits after the decimal
+                    bool shouldWriteDouble = false;
+                    if (float.IsInfinity((float)token))
+                    {
+                        shouldWriteDouble = true;
+                    }
                     else
+                    {
+                        var floatString = ((JValue)token).ToString();
+                        string[] dotsplit = floatString.Split('.', 2);
+                        shouldWriteDouble = !(dotsplit.Length > 1 && dotsplit[1].Length <= 9);
+                    }
+
+                    if (shouldWriteDouble)
                         Write(bw, (double)token);
+                    else
+                        Write(bw, (float)token);
                     break;
                 case JTokenType.Integer:
                     var intValue = (long)token;
