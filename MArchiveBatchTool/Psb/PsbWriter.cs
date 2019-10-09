@@ -330,6 +330,7 @@ namespace MArchiveBatchTool.Psb
                 {
                     // Replace stream string representation with a JStream
                     var newNode = JStream.CreateFromStringRepresentation(stringValue);
+                    ((JValue)node).Value = string.Empty; // Invalidate old node so replacement goes through
                     node.Replace(newNode);
                     node = newNode;
                 }
