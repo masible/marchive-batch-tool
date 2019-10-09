@@ -146,5 +146,25 @@ namespace MArchiveBatchTool.Psb
                 return new JTokenEqualityComparer().Equals(reader.Root, newReader.Root);
             }
         }
+
+        public static bool TestSerializeDeserialize(JToken root, IPsbStreamSource streamSource, string psbOutPath, TextWriter jsonWriter, TextWriter debugWriter)
+        {
+            using (FileStream fs = File.Create(psbOutPath))
+            {
+                PsbWriter writer = new PsbWriter(root, streamSource)
+                {
+                    Version = 4,
+                    Optimize = true
+                };
+                writer.Write(fs);
+                fs.Flush();
+
+                fs.Seek(0, SeekOrigin.Begin);
+                PsbReader reader = new PsbReader(fs, null, debugWriter);
+                reader.Root.WriteTo(new JsonTextWriter(jsonWriter) { Formatting = Formatting.Indented });
+
+                return new JTokenEqualityComparer().Equals(root, reader.Root);
+            }
+        }
     }
 }
