@@ -4,7 +4,7 @@ using System.Text;
 
 namespace MArchiveBatchTool.Psb
 {
-    public enum PsbTokenType
+    enum PsbTokenType
     {
         Invalid,
         Null,
