@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using Newtonsoft.Json.Linq;
 using MArchiveBatchTool.Psb;
 using MArchiveBatchTool.Models;
 
@@ -9,6 +10,8 @@ namespace MArchiveBatchTool.MArchive
 {
     public static class AllDataPacker
     {
+        static readonly int ALIGNMENT = 4096;
+
         public static void UnpackFiles(string psbPath, string outputPath, MArchivePacker maPacker = null)
         {
             // Figure out what file we've been given
@@ -50,6 +53,41 @@ namespace MArchiveBatchTool.MArchive
                         Utils.CopyStream(fs, ofs, file.Value[1]);
                     }
                 }
+            }
+        }
+
+        public static void Build(string folderPath, string outputPath, MArchivePacker maPacker = null, IPsbFilter filter = null)
+        {
+            using (FileStream packStream = File.Create(outputPath + ".bin"))
+            using (FileStream psbStream = File.Create(outputPath + ".psb"))
+            {
+                ArchiveV1 archive = new ArchiveV1();
+                archive.ObjectType = "archive";
+                archive.Version = 1.0f;
+                
+                foreach (var file in Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories))
+                {
+                    string key = file.Replace(folderPath, string.Empty).TrimStart('/', '\\');
+                    Console.WriteLine($"Packing {key}");
+                    var targetLength = (packStream.Position + ALIGNMENT - 1) / ALIGNMENT * ALIGNMENT;
+                    byte[] alignBytes = new byte[targetLength - packStream.Length];
+                    packStream.Write(alignBytes, 0, alignBytes.Length);
+                    var currPos = packStream.Position;
+                    using (FileStream fs = File.OpenRead(file))
+                    {
+                        fs.CopyTo(packStream);
+                        archive.FileInfo.Add(key, new List<int>() { (int)currPos, (int)fs.Length });
+                    }
+                }
+
+                JToken root = JToken.FromObject(archive);
+                PsbWriter writer = new PsbWriter(root, null);
+                writer.Write(psbStream, filter);
+            }
+
+            if (maPacker != null)
+            {
+                maPacker.CompressFile(outputPath + ".psb");
             }
         }
     }
