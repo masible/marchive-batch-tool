@@ -445,11 +445,12 @@ namespace MArchiveBatchTool.Psb
                 case JTokenType.Float:
                     if (((JValue)token).Value is decimal d)
                     {
-                        string digitsAfterDecimal = (d - decimal.Truncate(d)).ToString().Replace("0.", string.Empty);
-                        if (digitsAfterDecimal.Length > 7 && !float.IsInfinity((float)token))
-                            Write(bw, (double)token);
-                        else
+                        var decString = ((decimal)token).ToString();
+                        var decFloatString = ((decimal)(float)token).ToString();
+                        if (d - decimal.Truncate(d) == 0 || decFloatString == decString)
                             Write(bw, (float)token);
+                        else
+                            Write(bw, (double)token);
                     }
                     else
                     {
