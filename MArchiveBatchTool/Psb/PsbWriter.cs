@@ -454,7 +454,7 @@ namespace MArchiveBatchTool.Psb
                     {
                         var floatString = ((JValue)token).ToString();
                         string[] dotsplit = floatString.Split('.', 2);
-                        shouldWriteDouble = !(dotsplit.Length > 1 && dotsplit[1].Length <= 9);
+                        shouldWriteDouble = dotsplit.Length > 1 && dotsplit[1].Length > 9;
                     }
 
                     if (shouldWriteDouble)
