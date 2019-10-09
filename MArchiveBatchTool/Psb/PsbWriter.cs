@@ -322,13 +322,26 @@ namespace MArchiveBatchTool.Psb
 
         void PrepareNode(JToken node)
         {
-            if (node is JStream stream)
+            if (node.Type == JTokenType.String)
             {
-                PrepareStream(stream);
-            }
-            else if (node.Type == JTokenType.String)
-            {
-                PrepareString((string)node);
+                var stringValue = (string)node;
+                if ((stringValue.StartsWith("_stream:") || stringValue.StartsWith("_bstream:"))
+                    && !(node is JStream))
+                {
+                    // Replace stream string representation with a JStream
+                    var newNode = JStream.CreateFromStringRepresentation(stringValue);
+                    node.Replace(newNode);
+                    node = newNode;
+                }
+
+                if (node is JStream stream)
+                {
+                    PrepareStream(stream);
+                }
+                else
+                {
+                    PrepareString(stringValue);
+                }
             }
             else if (node is JArray array)
             {
