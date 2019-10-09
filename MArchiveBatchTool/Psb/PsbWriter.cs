@@ -51,6 +51,7 @@ namespace MArchiveBatchTool.Psb
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
             if (!stream.CanSeek) throw new ArgumentException("Stream not seekable", nameof(stream));
+            if (Version < 1 || Version > 4) throw new NotSupportedException("PSB version requested not supported.");
             Prepare();
             BinaryWriter bw = new BinaryWriter(stream);
             WritePrelimHeader(bw);
