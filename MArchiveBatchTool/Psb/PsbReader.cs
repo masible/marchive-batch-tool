@@ -256,7 +256,7 @@ namespace MArchiveBatchTool.Psb
                 debugWriter.WriteLine();
             }
         }
-        
+
         void CheckDisposed()
         {
             if (disposed)

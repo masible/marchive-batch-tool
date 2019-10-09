@@ -64,7 +64,7 @@ namespace MArchiveBatchTool.MArchive
                 ArchiveV1 archive = new ArchiveV1();
                 archive.ObjectType = "archive";
                 archive.Version = 1.0f;
-                
+
                 foreach (var file in Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories))
                 {
                     string key = file.Replace(folderPath, string.Empty).TrimStart('/', '\\');

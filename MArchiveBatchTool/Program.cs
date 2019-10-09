@@ -10,7 +10,7 @@ namespace MArchiveBatchTool
 {
     class Program
     {
-        static readonly string[] AVAILABLE_CODECS = {"zstd", "zstandard", "zlib"};
+        static readonly string[] AVAILABLE_CODECS = { "zstd", "zstandard", "zlib" };
 
         static int Main(string[] args)
         {
@@ -19,7 +19,8 @@ namespace MArchiveBatchTool
                 FullName = "MArchive Batch Tool"
             };
 
-            app.Command("m", (config) => {
+            app.Command("m", (config) =>
+            {
                 config.FullName = "Manipulate .m files";
                 config.Description = "Unpacks/repacks .m files; call directly to automatically pack/unpack file as appropriate";
 
@@ -163,7 +164,8 @@ namespace MArchiveBatchTool
                 config.HelpOption();
             });
 
-            app.Command("archive", (config) => {
+            app.Command("archive", (config) =>
+            {
                 config.FullName = "Manipulate archive";
                 config.Description = "Create/extract alldata.bin files";
 
@@ -314,7 +316,8 @@ namespace MArchiveBatchTool
             using (StreamReader reader = File.OpenText(path))
             using (Stream writer = File.Create(psbPath))
             {
-                JsonTextReader jReader = new JsonTextReader(reader) {
+                JsonTextReader jReader = new JsonTextReader(reader)
+                {
                     FloatParseHandling = readAsFloat ? FloatParseHandling.Double : FloatParseHandling.Decimal
                 };
                 JToken root = JToken.ReadFrom(jReader);

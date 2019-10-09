@@ -46,7 +46,7 @@ namespace MArchiveBatchTool.Psb.Writing
         }
 
         public bool IsGenerated { get; private set; }
-        public bool IsFlat {get;private set;}
+        public bool IsFlat { get; private set; }
         public int Count => strings.Count;
 
         public KeyNamesGenerator(IKeyNamesEncoder encoder, bool isFlat)

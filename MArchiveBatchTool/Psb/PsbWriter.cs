@@ -36,9 +36,9 @@ namespace MArchiveBatchTool.Psb
         uint bStreamsSizesOffset;
         uint bStreamsBlobOffset;
 
-        public ushort Version {get; set;}
-        public PsbFlags Flags {get;set;}
-        public bool Optimize {get;set;}
+        public ushort Version { get; set; }
+        public PsbFlags Flags { get; set; }
+        public bool Optimize { get; set; }
 
         public PsbWriter(JToken root, IPsbStreamSource streamSource)
         {
@@ -62,7 +62,7 @@ namespace MArchiveBatchTool.Psb
             {
                 WriteStreamsMeta(bw, true);
                 WriteStreams(bw, true);
-            } 
+            }
             WriteStreamsMeta(bw, false);
             WriteStreams(bw, false);
             UpdateHeader(bw);
@@ -395,7 +395,7 @@ namespace MArchiveBatchTool.Psb
                 if (!cache.Select(x => x.Item1).Contains(hashString))
                 {
                     stream.Index = (uint)cache.Count;
-                    cache.Add(new Tuple<string, List<JStream>, long>(hashString, new List<JStream> {stream}, length));
+                    cache.Add(new Tuple<string, List<JStream>, long>(hashString, new List<JStream> { stream }, length));
                 }
                 else
                 {
@@ -407,7 +407,7 @@ namespace MArchiveBatchTool.Psb
             else
             {
                 stream.Index = (uint)cache.Count;
-                cache.Add(new Tuple<string, List<JStream>, long>(null, new List<JStream> {stream}, length));
+                cache.Add(new Tuple<string, List<JStream>, long>(null, new List<JStream> { stream }, length));
             }
         }
 
@@ -541,7 +541,7 @@ namespace MArchiveBatchTool.Psb
                 ++bytesNeeded;
                 value >>= 8;
             }
-            
+
             // Need min 1 byte even if all zeroes because there's no separate encoding for UInt zero
             if (bytesNeeded == 0) bytesNeeded = 1;
             return bytesNeeded;

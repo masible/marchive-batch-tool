@@ -10,28 +10,28 @@ namespace MArchiveBatchTool.Psb
     {
         public class RangeNode
         {
-            public RangeNode Parent {get;set;}
-            public uint Index {get;set;}
-            public uint Min {get;set;}
-            public uint Max {get;set;}
-            public int Rank {get;set;} = -1;
-            public HashSet<RangeNode> Children {get;} = new HashSet<RangeNode>();
-            public bool IsTerminal {get;set;}
+            public RangeNode Parent { get; set; }
+            public uint Index { get; set; }
+            public uint Min { get; set; }
+            public uint Max { get; set; }
+            public int Rank { get; set; } = -1;
+            public HashSet<RangeNode> Children { get; } = new HashSet<RangeNode>();
+            public bool IsTerminal { get; set; }
             public bool IsSingular => Min == Max;
         }
 
         List<RangeNode> nodeCache = new List<RangeNode>();
-        uint maxSoFar; 
+        uint maxSoFar;
         List<List<RangeNode>> coverageMap = new List<List<RangeNode>>();
 
-        public bool IsOrdered {get; private set;}
+        public bool IsOrdered { get; private set; }
 
         public void AddRange(uint index, uint min, uint max, bool isTerminal)
         {
             if (min > max) throw new ArgumentException("min is greater than max");
             if (isTerminal && min != max)
                 throw new ArgumentException("min and max are not the same for a terminal node.");
-            nodeCache.Add(new RangeNode { Index = index, Min = min, Max = max, IsTerminal = isTerminal});
+            nodeCache.Add(new RangeNode { Index = index, Min = min, Max = max, IsTerminal = isTerminal });
             if (max > maxSoFar) maxSoFar = max;
             IsOrdered = false;
         }
@@ -49,7 +49,7 @@ namespace MArchiveBatchTool.Psb
                 node.Children.Clear();
             }
             coverageMap.Clear();
-            
+
             // Init new coverage map
             for (int i = 0; i <= maxSoFar; ++i)
             {
