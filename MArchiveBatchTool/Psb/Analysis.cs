@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.CodeDom.Compiler;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using MArchiveBatchTool.Psb.Writing;
 
 namespace MArchiveBatchTool.Psb
@@ -98,7 +100,8 @@ namespace MArchiveBatchTool.Psb
 
         public static bool TestKeyNamesGeneration(TextWriter writer, PsbReader reader)
         {
-            KeyNamesGenerator generator = new KeyNamesGenerator(new StandardKeyNamesEncoder() { OutputDebug = false });
+            KeyNamesGenerator generator = new KeyNamesGenerator(
+                new StandardKeyNamesEncoder() { OutputDebug = false }, false);
             var keyNames = reader.KeyNames;
             for (uint i = 0; i < keyNames.Count; ++i)
             {
@@ -121,6 +124,27 @@ namespace MArchiveBatchTool.Psb
                 }
             }
             return true;
+        }
+
+        public static bool TestSerializeDeserialize(PsbReader reader, string psbOutPath, TextWriter jsonWriter, TextWriter debugWriter)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                PsbWriter writer = new PsbWriter(reader.Root, null)
+                {
+                    Version = reader.Version,
+                    Optimize = true
+                };
+                writer.Write(ms);
+
+                File.WriteAllBytes(psbOutPath, ms.ToArray());
+
+                ms.Seek(0, SeekOrigin.Begin);
+                PsbReader newReader = new PsbReader(ms, null, debugWriter);
+                JsonTextWriter jtw = new JsonTextWriter(jsonWriter) { Formatting = Formatting.Indented };
+                newReader.Root.WriteTo(jtw);
+                return new JTokenEqualityComparer().Equals(reader.Root, newReader.Root);
+            }
         }
     }
 }

@@ -8,8 +8,8 @@ namespace MArchiveBatchTool.Psb
     public class JStream : JValue
     {
         public byte[] BinaryData { get; set; }
-        public uint Index { get; private set; }
-        public bool IsBStream { get; private set; }
+        public uint Index { get; internal set; }
+        public bool IsBStream { get; internal set; }
 
         public JStream(uint index, bool isBStream) : base(string.Empty)
         {

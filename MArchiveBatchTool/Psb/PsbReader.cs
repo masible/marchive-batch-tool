@@ -92,7 +92,7 @@ namespace MArchiveBatchTool.Psb
         public Dictionary<uint, JStream> BStreamCache { get; } = new Dictionary<uint, JStream>();
         internal KeyNamesReader KeyNames => keyNames;
 
-        public PsbReader(Stream stream, IPsbFilter filter = null, StreamWriter debugWriter = null)
+        public PsbReader(Stream stream, IPsbFilter filter = null, TextWriter debugWriter = null)
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
             if (!stream.CanSeek) throw new ArgumentException("Stream cannot be seeked.", nameof(stream));
@@ -119,7 +119,7 @@ namespace MArchiveBatchTool.Psb
 
         byte[] VerifyHeader()
         {
-            int headerLength = 4 * 8;
+            int headerLength = 8 * 4;
             if (Version >= 3)
             {
                 headerLength += 4;
