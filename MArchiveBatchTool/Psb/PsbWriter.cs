@@ -446,7 +446,7 @@ namespace MArchiveBatchTool.Psb
                     if (((JValue)token).Value is decimal d)
                     {
                         string digitsAfterDecimal = (d - decimal.Truncate(d)).ToString().Replace("0.", string.Empty);
-                        if (digitsAfterDecimal.Length > 7)
+                        if (digitsAfterDecimal.Length > 7 && !float.IsInfinity((float)token))
                             Write(bw, (double)token);
                         else
                             Write(bw, (float)token);
