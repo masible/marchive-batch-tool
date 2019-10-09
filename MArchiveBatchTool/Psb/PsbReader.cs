@@ -312,9 +312,11 @@ namespace MArchiveBatchTool.Psb
                 case PsbTokenType.Stream:
                     return ParseStream(typeId);
                 case PsbTokenType.Float:
-                    return ParseFloat(typeId);
+                    var floatValue = ParseFloat(typeId);
+                    return decimal.Parse(floatValue.ToString());
                 case PsbTokenType.Double:
-                    return ParseDouble(typeId);
+                    var doubleValue = ParseDouble(typeId);
+                    return decimal.Parse(doubleValue.ToString());
                 case PsbTokenType.TokenArray:
                     return ParseTokenArray(typeId);
                 case PsbTokenType.Object:
