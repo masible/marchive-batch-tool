@@ -16,6 +16,7 @@ namespace MArchiveBatchTool
         {
             var app = new CommandLineApplication
             {
+                Name = Path.GetFileName(Environment.GetCommandLineArgs()[0]),
                 FullName = "MArchive Batch Tool"
             };
 
@@ -48,6 +49,8 @@ namespace MArchiveBatchTool
                             packer.DecompressDirectory(pathArgL.Value, keepOptionL.HasValue());
                         }
                     });
+
+                    innerConfig.HelpOption();
                 });
 
                 config.Command("pack", (innerConfig) =>
@@ -74,6 +77,8 @@ namespace MArchiveBatchTool
                             packer.CompressDirectory(pathArgL.Value, keepOptionL.HasValue());
                         }
                     });
+
+                    innerConfig.HelpOption();
                 });
 
                 var pathArg = config.Argument("path", "Path to the file").IsRequired();
@@ -120,6 +125,8 @@ namespace MArchiveBatchTool
                         if (keyOptionL.HasValue()) filter = new EmoteCryptFilter(keyOptionL.ParsedValue);
                         DumpPsb(pathArgL.Value, debugOptionL.HasValue(), filter);
                     });
+
+                    innerConfig.HelpOption();
                 });
 
                 config.Command("serialize", (innerConfig) =>
@@ -138,6 +145,8 @@ namespace MArchiveBatchTool
                         if (keyOptionL.HasValue()) filter = new EmoteCryptFilter(keyOptionL.ParsedValue);
                         SerializePsb(pathArgL.Value, filter, !noOptimizeOptionL.HasValue(), floatOptionL.HasValue());
                     });
+
+                    innerConfig.HelpOption();
                 });
 
                 var pathArg = config.Argument("path", "Path of the .psb or .json file").IsRequired();
@@ -181,7 +190,7 @@ namespace MArchiveBatchTool
                     var keyOpt = innerConfig.Option("--seed", "The static seed", CommandOptionType.SingleValue);
                     var keyLengthOpt = innerConfig.Option<int>("--keyLength", "The key cycle length", CommandOptionType.SingleValue);
 
-                    config.OnExecute(() =>
+                    innerConfig.OnExecute(() =>
                     {
                         string archPath = pathArg.Value;
                         string extractPath = outputArg.Value ?? archPath + "_extracted";
@@ -190,6 +199,8 @@ namespace MArchiveBatchTool
                             packer = new MArchivePacker(GetCodec(codecOpt.Value()), keyOpt.Value(), keyLengthOpt.ParsedValue);
                         AllDataPacker.UnpackFiles(archPath, extractPath, packer);
                     });
+
+                    innerConfig.HelpOption();
                 });
 
                 config.Command("build", (innerConfig) =>
@@ -203,9 +214,9 @@ namespace MArchiveBatchTool
                     codecOpt.Accepts().Values(AVAILABLE_CODECS);
                     var keyOpt = innerConfig.Option("--seed", "The static seed", CommandOptionType.SingleValue);
                     var keyLengthOpt = innerConfig.Option<int>("--keyLength", "The key cycle length", CommandOptionType.SingleValue);
-                    var psbKeyOption = config.Option<uint>("--key", "Seed for Emote encryption filter", CommandOptionType.SingleValue);
+                    var psbKeyOption = innerConfig.Option<uint>("--key", "Seed for Emote encryption filter", CommandOptionType.SingleValue);
 
-                    config.OnExecute(() =>
+                    innerConfig.OnExecute(() =>
                     {
                         string folderPath = pathArg.Value;
                         string outPath = outputArg.Value ?? folderPath;
@@ -216,9 +227,16 @@ namespace MArchiveBatchTool
                         if (psbKeyOption.HasValue()) filter = new EmoteCryptFilter(psbKeyOption.ParsedValue);
                         AllDataPacker.Build(folderPath, outPath, maPacker, filter);
                     });
+
+                    innerConfig.HelpOption();
                 });
 
                 config.HelpOption();
+
+                config.OnExecute(() =>
+                {
+                    config.ShowHelp();
+                });
             });
 
             app.Command("fullunpack", (config) =>
@@ -253,6 +271,8 @@ namespace MArchiveBatchTool
                         DumpPsb(file, debugOption.HasValue(), filter);
                     }
                 });
+
+                config.HelpOption();
             });
 
             app.VersionOptionFromAssemblyAttributes(System.Reflection.Assembly.GetExecutingAssembly());
