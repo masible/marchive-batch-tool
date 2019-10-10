@@ -516,14 +516,13 @@ namespace MArchiveBatchTool.Psb
 
         void Write(BinaryWriter bw, long value)
         {
-            if ((value & unchecked((long)0xffffffff00000000)) == 0)
+            // Find out number of bytes we need
+            int bytesNeeded = CalcBytesNeeded(value);
+            if (bytesNeeded == -1)
             {
                 Write(bw, (int)value);
                 return;
             }
-
-            // Find out number of bytes we need
-            int bytesNeeded = 4 + CalcBytesNeeded((int)(value >> 32));
 
             bw.Write((byte)(9 + bytesNeeded - 5));
             byte[] buf = BitConverter.GetBytes(value);
@@ -557,6 +556,14 @@ namespace MArchiveBatchTool.Psb
                 return 2;
             else
                 return 1;
+        }
+
+        int CalcBytesNeeded(long value)
+        {
+            if (value < -2147483648 || value > 2147483647)
+                return CalcBytesNeeded((int)(value >> 32)) + 4;
+            else
+                return -1;
         }
 
         void Write(BinaryWriter bw, uint value, int baseId)
