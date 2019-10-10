@@ -10,7 +10,7 @@ namespace MArchiveBatchTool.MArchive
 {
     public static class AllDataPacker
     {
-        static readonly int ALIGNMENT = 4096;
+        static readonly int ALIGNMENT = 2048;
 
         public static void UnpackFiles(string psbPath, string outputPath, MArchivePacker maPacker = null)
         {
