@@ -140,15 +140,25 @@ namespace MArchiveBatchTool
                     innerConfig.Description = "Serializes .json file to .psb";
                     var pathArgL = innerConfig.Argument("path", "Path of the .json file").IsRequired();
                     pathArgL.Accepts().ExistingFile();
+                    var versionOption = innerConfig.Option<ushort>("--version", "PSB version (default 4)", CommandOptionType.SingleValue);
+                    var filterHeaderOption = innerConfig.Option("--filterHeader", "Enable header filtering", CommandOptionType.NoValue);
+                    var filterBodyOption = innerConfig.Option("--filterBody", "Enable body filtering", CommandOptionType.NoValue);
                     var keyOptionL = innerConfig.Option<uint>("--key", "Seed for Emote encryption filter", CommandOptionType.SingleValue);
                     var noOptimizeOptionL = innerConfig.Option("--noOptimize", "Do not optimize output", CommandOptionType.NoValue);
                     var floatOptionL = innerConfig.Option("--float", "Read floating point numbers as float/double instead of decimal (faster but less accurate to original)", CommandOptionType.NoValue);
 
                     innerConfig.OnExecute(() =>
                     {
+                        // Not the proper way to show an argument problem, but this'll do for now
+                        if ((filterHeaderOption.HasValue() || filterBodyOption.HasValue()) && !keyOptionL.HasValue())
+                            throw new ArgumentException("Header or body filtering requires key set.");
                         IPsbFilter filter = null;
                         if (keyOptionL.HasValue()) filter = new EmoteCryptFilter(keyOptionL.ParsedValue);
-                        SerializePsb(pathArgL.Value, filter, !noOptimizeOptionL.HasValue(), floatOptionL.HasValue());
+                        PsbFlags flags = PsbFlags.None;
+                        if (filterHeaderOption.HasValue()) flags |= PsbFlags.HeaderFiltered;
+                        if (filterBodyOption.HasValue()) flags |= PsbFlags.BodyFiltered;
+                        ushort version = versionOption.HasValue() ? versionOption.ParsedValue : (ushort)4;
+                        SerializePsb(pathArgL.Value, version, flags, filter, !noOptimizeOptionL.HasValue(), floatOptionL.HasValue());
                     });
 
                     innerConfig.HelpOption();
@@ -339,7 +349,7 @@ namespace MArchiveBatchTool
             }
         }
 
-        static void SerializePsb(string path, IPsbFilter filter, bool optimize, bool readAsFloat)
+        static void SerializePsb(string path, ushort version, PsbFlags flags, IPsbFilter filter, bool optimize, bool readAsFloat)
         {
             string psbPath = Path.ChangeExtension(path, null);
             if (!psbPath.ToLower().EndsWith(".psb")) psbPath += ".psb";
@@ -353,6 +363,8 @@ namespace MArchiveBatchTool
                 JToken root = JToken.ReadFrom(jReader);
                 IPsbStreamSource streamSource = new CliStreamSource(Path.ChangeExtension(path, ".streams"));
                 PsbWriter psbWriter = new PsbWriter(root, streamSource);
+                psbWriter.Version = version;
+                psbWriter.Flags = flags;
                 psbWriter.Optimize = optimize;
                 psbWriter.Write(writer, filter);
             }
