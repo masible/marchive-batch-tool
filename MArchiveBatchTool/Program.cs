@@ -81,26 +81,26 @@ namespace MArchiveBatchTool
                     innerConfig.HelpOption();
                 });
 
-                var pathArg = config.Argument("path", "Path to the file").IsRequired();
-                pathArg.Accepts().ExistingFile();
-                var codecArg = config.Argument("codec", "The codec used for packing/unpacking").IsRequired();
-                codecArg.Accepts().Values(AVAILABLE_CODECS);
-                var keyArg = config.Argument("seed", "The static seed").IsRequired();
-                var keyLengthArg = config.Argument<int>("keyLength", "The key cycle length").IsRequired();
-                var keepOption = config.Option("--keep", "Keep input file", CommandOptionType.NoValue);
+                //var pathArg = config.Argument("path", "Path to the file").IsRequired();
+                //pathArg.Accepts().ExistingFile();
+                //var codecArg = config.Argument("codec", "The codec used for packing/unpacking").IsRequired();
+                //codecArg.Accepts().Values(AVAILABLE_CODECS);
+                //var keyArg = config.Argument("seed", "The static seed").IsRequired();
+                //var keyLengthArg = config.Argument<int>("keyLength", "The key cycle length").IsRequired();
+                //var keepOption = config.Option("--keep", "Keep input file", CommandOptionType.NoValue);
 
-                config.OnExecute(() =>
-                {
-                    var packer = new MArchivePacker(GetCodec(codecArg.Value), keyArg.Value, keyLengthArg.ParsedValue);
-                    if (Path.GetExtension(pathArg.Value).ToLower() == ".m")
-                    {
-                        packer.DecompressFile(pathArg.Value, keepOption.HasValue());
-                    }
-                    else
-                    {
-                        packer.CompressFile(pathArg.Value, keepOption.HasValue());
-                    }
-                });
+                //config.OnExecute(() =>
+                //{
+                //    var packer = new MArchivePacker(GetCodec(codecArg.Value), keyArg.Value, keyLengthArg.ParsedValue);
+                //    if (Path.GetExtension(pathArg.Value).ToLower() == ".m")
+                //    {
+                //        packer.DecompressFile(pathArg.Value, keepOption.HasValue());
+                //    }
+                //    else
+                //    {
+                //        packer.CompressFile(pathArg.Value, keepOption.HasValue());
+                //    }
+                //});
 
                 config.HelpOption();
             });
@@ -149,26 +149,26 @@ namespace MArchiveBatchTool
                     innerConfig.HelpOption();
                 });
 
-                var pathArg = config.Argument("path", "Path of the .psb or .json file").IsRequired();
-                pathArg.Accepts().ExistingFile();
-                var keyOption = config.Option<uint>("--key", "Seed for Emote encryption filter", CommandOptionType.SingleValue);
-                var debugOption = config.Option("--debug", "Write debug files", CommandOptionType.NoValue);
-                var noOptimizeOption = config.Option("--noOptimize", "Do not optimize output", CommandOptionType.NoValue);
-                var floatOption = config.Option("--float", "Write floating point numbers as float/double instead of decimal", CommandOptionType.NoValue);
+                //var pathArg = config.Argument("path", "Path of the .psb or .json file").IsRequired();
+                //pathArg.Accepts().ExistingFile();
+                //var keyOption = config.Option<uint>("--key", "Seed for Emote encryption filter", CommandOptionType.SingleValue);
+                //var debugOption = config.Option("--debug", "Write debug files", CommandOptionType.NoValue);
+                //var noOptimizeOption = config.Option("--noOptimize", "Do not optimize output", CommandOptionType.NoValue);
+                //var floatOption = config.Option("--float", "Write floating point numbers as float/double instead of decimal", CommandOptionType.NoValue);
 
-                config.OnExecute(() =>
-                {
-                    IPsbFilter filter = null;
-                    if (keyOption.HasValue()) filter = new EmoteCryptFilter(keyOption.ParsedValue);
-                    if (Path.GetExtension(pathArg.Value).ToLower() == ".psb")
-                    {
-                        DumpPsb(pathArg.Value, debugOption.HasValue(), filter);
-                    }
-                    else
-                    {
-                        SerializePsb(pathArg.Value, filter, !noOptimizeOption.HasValue(), floatOption.HasValue());
-                    }
-                });
+                //config.OnExecute(() =>
+                //{
+                //    IPsbFilter filter = null;
+                //    if (keyOption.HasValue()) filter = new EmoteCryptFilter(keyOption.ParsedValue);
+                //    if (Path.GetExtension(pathArg.Value).ToLower() == ".psb")
+                //    {
+                //        DumpPsb(pathArg.Value, debugOption.HasValue(), filter);
+                //    }
+                //    else
+                //    {
+                //        SerializePsb(pathArg.Value, filter, !noOptimizeOption.HasValue(), floatOption.HasValue());
+                //    }
+                //});
 
                 config.HelpOption();
             });
