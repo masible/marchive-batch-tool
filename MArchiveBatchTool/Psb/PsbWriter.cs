@@ -38,7 +38,7 @@ namespace MArchiveBatchTool.Psb
 
         public ushort Version { get; set; }
         public PsbFlags Flags { get; set; }
-        public bool Optimize { get; set; }
+        public bool Optimize { get; set; } = true;
 
         public PsbWriter(JToken root, IPsbStreamSource streamSource)
         {
