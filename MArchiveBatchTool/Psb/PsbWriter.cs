@@ -548,11 +548,11 @@ namespace MArchiveBatchTool.Psb
 
         int CalcBytesNeeded(int value)
         {
-            if (value < -8388608 || value > 8388607)
+            if (value < -8388608 || value > 8388607) // Range of 24-bit int
                 return 4;
-            else if (value < -32768 || value > 32767)
+            else if (value < short.MinValue || value > short.MaxValue)
                 return 3;
-            else if (value < -128 || value > 127)
+            else if (value < sbyte.MinValue || value > sbyte.MaxValue)
                 return 2;
             else
                 return 1;
@@ -560,7 +560,7 @@ namespace MArchiveBatchTool.Psb
 
         int CalcBytesNeeded(long value)
         {
-            if (value < -2147483648 || value > 2147483647)
+            if (value < int.MinValue || value > int.MaxValue)
                 return CalcBytesNeeded((int)(value >> 32)) + 4;
             else
                 return -1;
