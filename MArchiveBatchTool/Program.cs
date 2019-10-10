@@ -103,6 +103,11 @@ namespace MArchiveBatchTool
                 //});
 
                 config.HelpOption();
+
+                config.OnExecute(() =>
+                {
+                    config.ShowHelp();
+                });
             });
 
             app.Command("psb", (config) =>
@@ -171,6 +176,11 @@ namespace MArchiveBatchTool
                 //});
 
                 config.HelpOption();
+
+                config.OnExecute(() =>
+                {
+                    config.ShowHelp();
+                });
             });
 
             app.Command("archive", (config) =>
