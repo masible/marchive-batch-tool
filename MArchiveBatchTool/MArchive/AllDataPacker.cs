@@ -64,6 +64,8 @@ namespace MArchiveBatchTool.MArchive
                 ArchiveV1 archive = new ArchiveV1();
                 archive.ObjectType = "archive";
                 archive.Version = 1.0f;
+                archive.FileInfo = new Dictionary<string, List<int>>();
+                folderPath = Path.GetFullPath(folderPath);
 
                 foreach (var file in Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories))
                 {
@@ -76,12 +78,12 @@ namespace MArchiveBatchTool.MArchive
                     using (FileStream fs = File.OpenRead(file))
                     {
                         fs.CopyTo(packStream);
-                        archive.FileInfo.Add(key, new List<int>() { (int)currPos, (int)fs.Length });
+                        archive.FileInfo.Add(key.Replace('\\', '/'), new List<int>() { (int)currPos, (int)fs.Length });
                     }
                 }
 
                 JToken root = JToken.FromObject(archive);
-                PsbWriter writer = new PsbWriter(root, null);
+                PsbWriter writer = new PsbWriter(root, null) { Version = 3 };
                 writer.Write(psbStream, filter);
             }
 
