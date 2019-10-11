@@ -697,10 +697,10 @@ namespace MArchiveBatchTool.Psb
                 {
                     // Note: Optimization is not applicable here because key is stored with value,
                     // and all keys are unique
-                    foreach (var entry in value)
+                    foreach (var entry in value.Values<JProperty>().OrderBy(x => x.Name, StringComparer.Ordinal))
                     {
                         offsets.Add((uint)ms.Length);
-                        WriteKey(innerBw, entry.Key);
+                        WriteKey(innerBw, entry.Name);
                         WriteTokenValue(innerBw, entry.Value);
                     }
                 }
@@ -710,7 +710,7 @@ namespace MArchiveBatchTool.Psb
                     List<Tuple<uint, int, JToken>> tokenCache = new List<Tuple<uint, int, JToken>>();
                     JTokenEqualityComparer comparer = new JTokenEqualityComparer();
 
-                    foreach (var entry in value)
+                    foreach (var entry in value.Values<JProperty>().OrderBy(x => x.Name, StringComparer.Ordinal))
                     {
                         if (Optimize)
                         {
@@ -722,7 +722,7 @@ namespace MArchiveBatchTool.Psb
                                 {
                                     found = true;
                                     offsets.Add(potentialEntry.Item1);
-                                    keyIndexes.Add(keyNamesGen[entry.Key]);
+                                    keyIndexes.Add(keyNamesGen[entry.Name]);
                                     break;
                                 }
                             }
@@ -732,7 +732,7 @@ namespace MArchiveBatchTool.Psb
                                 tokenCache.Add(new Tuple<uint, int, JToken>((uint)ms.Length, hashCode, entry.Value));
                         }
                         offsets.Add((uint)ms.Length);
-                        keyIndexes.Add(keyNamesGen[entry.Key]);
+                        keyIndexes.Add(keyNamesGen[entry.Name]);
                         WriteTokenValue(innerBw, entry.Value);
                     }
                     Write(bw, keyIndexes.ToArray());
