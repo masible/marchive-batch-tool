@@ -7,13 +7,39 @@ namespace MArchiveBatchTool.Psb
 {
     public class JStream : JValue
     {
-        public byte[] BinaryData { get; set; }
+        byte[] binaryDataBacking;
+
+        internal PsbReader Reader { get; set; }
+        public byte[] BinaryData
+        {
+            get
+            {
+                if (binaryDataBacking != null && Reader != null)
+                {
+                    return Reader.GetStreamData(this);
+                }
+                else
+                {
+                    return binaryDataBacking;
+                }
+            }
+            set
+            {
+                binaryDataBacking = value;
+            }
+        }
+
         public uint Index { get; internal set; }
         public bool IsBStream { get; internal set; }
 
         public JStream(uint index, bool isBStream) : base(string.Empty)
         {
             Value = string.Format("_{0}stream:{1}", IsBStream ? "b" : "", index);
+        }
+
+        internal JStream(uint index, bool isBStream, PsbReader parent) : this(index, isBStream)
+        {
+            Reader = parent;
         }
 
         public static JStream CreateFromStringRepresentation(string rep)

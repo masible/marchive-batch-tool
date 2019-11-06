@@ -44,6 +44,7 @@ namespace MArchiveBatchTool.Psb
         IPsbFilter filter;
         KeyNamesReader keyNames;
         IndentedTextWriter debugWriter;
+        bool lazyStreamLoading;
         bool disposed;
 
         // Header values
@@ -92,13 +93,15 @@ namespace MArchiveBatchTool.Psb
         public Dictionary<uint, JStream> BStreamCache { get; } = new Dictionary<uint, JStream>();
         internal KeyNamesReader KeyNames => keyNames;
 
-        public PsbReader(Stream stream, IPsbFilter filter = null, TextWriter debugWriter = null)
+        public PsbReader(Stream stream, IPsbFilter filter = null, TextWriter debugWriter = null,
+            bool lazyStreamLoading = true)
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
             if (!stream.CanSeek) throw new ArgumentException("Stream cannot be seeked.", nameof(stream));
             this.stream = stream;
             br = new BinaryReader(stream);
             this.filter = filter;
+            this.lazyStreamLoading = lazyStreamLoading;
 
             if (new string(br.ReadChars(4)) != "PSB\0") throw new InvalidDataException("File is not a PSB");
             Version = br.ReadUInt16();
@@ -522,11 +525,16 @@ namespace MArchiveBatchTool.Psb
                 --debugWriter.Indent;
                 debugWriter.WriteLine(">");
             }
-            long oldPos = stream.Position;
-            stream.Seek(streamsBlobOffset + streamsOffsets[index], SeekOrigin.Begin);
-            byte[] data = br.ReadBytes((int)streamsSizes[index]);
-            stream.Position = oldPos;
-            var js = new JStream(index, false) { BinaryData = data };
+            var js = new JStream(index, false, this);
+            if (!lazyStreamLoading)
+            {
+                long oldPos = stream.Position;
+                stream.Seek(streamsBlobOffset + streamsOffsets[index], SeekOrigin.Begin);
+                byte[] data = br.ReadBytes((int)streamsSizes[index]);
+                stream.Position = oldPos;
+                js.BinaryData = data;
+                js.Reader = null;
+            }
             StreamCache[index] = js;
             return js;
         }
@@ -702,11 +710,17 @@ namespace MArchiveBatchTool.Psb
                 --debugWriter.Indent;
                 debugWriter.WriteLine(">");
             }
-            long oldPos = stream.Position;
-            stream.Seek(bStreamsBlobOffset + bStreamsOffsets[index], SeekOrigin.Begin);
-            byte[] data = br.ReadBytes((int)bStreamsSizes[index]);
-            stream.Position = oldPos;
-            var js = new JStream(index, true) { BinaryData = data };
+
+            var js = new JStream(index, true, this);
+            if (!lazyStreamLoading)
+            {
+                long oldPos = stream.Position;
+                stream.Seek(bStreamsBlobOffset + bStreamsOffsets[index], SeekOrigin.Begin);
+                byte[] data = br.ReadBytes((int)bStreamsSizes[index]);
+                stream.Position = oldPos;
+                js.BinaryData = data;
+                js.Reader = null;
+            }
             BStreamCache[index] = js;
             return js;
         }
@@ -723,6 +737,37 @@ namespace MArchiveBatchTool.Psb
             return Encoding.UTF8.GetString(buffer.ToArray());
         }
         #endregion
+
+        internal byte[] GetStreamData(JStream js)
+        {
+            if (js.Reader != this) throw new ArgumentException("Stream does not belong to this reader.", nameof(js));
+            CheckDisposed();
+            if (js.IsBStream)
+            {
+                stream.Seek(bStreamsBlobOffset + bStreamsOffsets[js.Index], SeekOrigin.Begin);
+                return br.ReadBytes((int)bStreamsSizes[js.Index]);
+            }
+            else
+            {
+                stream.Seek(streamsBlobOffset + streamsOffsets[js.Index], SeekOrigin.Begin);
+                return br.ReadBytes((int)streamsSizes[js.Index]);
+            }
+        }
+
+        // Decouples JStreams from the reader
+        public void LoadAllStreamData()
+        {
+            foreach (var js in BStreamCache.Values)
+            {
+                js.BinaryData = GetStreamData(js);
+                js.Reader = null;
+            }
+            foreach (var js in StreamCache.Values)
+            {
+                js.BinaryData = GetStreamData(js);
+                js.Reader = null;
+            }
+        }
 
         internal class KeyNamesReader
         {
