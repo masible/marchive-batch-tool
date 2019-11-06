@@ -14,7 +14,7 @@ namespace MArchiveBatchTool.Psb
         {
             get
             {
-                if (binaryDataBacking != null && Reader != null)
+                if (binaryDataBacking == null && Reader != null)
                 {
                     return Reader.GetStreamData(this);
                 }
