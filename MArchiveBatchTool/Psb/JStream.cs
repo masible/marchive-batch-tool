@@ -34,6 +34,8 @@ namespace MArchiveBatchTool.Psb
 
         public JStream(uint index, bool isBStream) : base(string.Empty)
         {
+            Index = index;
+            IsBStream = isBStream;
             Value = string.Format("_{0}stream:{1}", IsBStream ? "b" : "", index);
         }
 
