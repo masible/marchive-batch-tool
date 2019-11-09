@@ -8,6 +8,8 @@ namespace MArchiveBatchTool.Psb
     public class JStream : JValue
     {
         byte[] binaryDataBacking;
+        uint index;
+        bool isBStream;
 
         internal PsbReader Reader { get; set; }
         public byte[] BinaryData
@@ -28,19 +30,48 @@ namespace MArchiveBatchTool.Psb
             }
         }
 
-        public uint Index { get; internal set; }
-        public bool IsBStream { get; internal set; }
-
-        public JStream(uint index, bool isBStream) : base(string.Empty)
+        public uint Index
         {
-            Index = index;
-            IsBStream = isBStream;
-            Value = string.Format("_{0}stream:{1}", IsBStream ? "b" : "", index);
+            get
+            {
+                return index;
+            }
+            internal set
+            {
+                index = value;
+                UpdateName();
+            }
         }
 
-        internal JStream(uint index, bool isBStream, PsbReader parent) : this(index, isBStream)
+        public bool IsBStream
         {
+            get
+            {
+                return isBStream;
+            }
+            internal set
+            {
+                isBStream = value;
+                UpdateName();
+            }
+        }
+
+        public JStream(bool isBStream) : base(string.Format("_{0}stream:new", isBStream ? "b" : ""))
+        {
+            this.isBStream = isBStream;
+        }
+
+        internal JStream(uint index, bool isBStream, PsbReader parent = null) : base(string.Empty)
+        {
+            this.index = index;
+            this.isBStream = isBStream;
             Reader = parent;
+            UpdateName();
+        }
+
+        void UpdateName()
+        {
+            Value = string.Format("_{0}stream:{1}", isBStream ? "b" : "", index);
         }
 
         public static JStream CreateFromStringRepresentation(string rep)
