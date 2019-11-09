@@ -16,16 +16,15 @@ namespace MArchiveBatchTool.Psb
             {
                 if (binaryDataBacking == null && Reader != null)
                 {
-                    return Reader.GetStreamData(this);
+                    binaryDataBacking = Reader.GetStreamData(this);
+                    Reader = null;
                 }
-                else
-                {
-                    return binaryDataBacking;
-                }
+                return binaryDataBacking;
             }
             set
             {
                 binaryDataBacking = value;
+                Reader = null;
             }
         }
 
