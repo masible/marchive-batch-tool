@@ -21,7 +21,7 @@ namespace MArchiveBatchTool.Psb
         JToken root;
         IPsbStreamSource streamSource;
         HashAlgorithm hasher;
-
+        JTokenEqualityComparer jtokenComparer = new JTokenEqualityComparer();
 
         // Header values
         uint keysOffsetsOffset;
@@ -652,7 +652,6 @@ namespace MArchiveBatchTool.Psb
             bw.Write((byte)32);
             List<uint> offsets = new List<uint>();
             List<Tuple<uint, int, JToken>> tokenCache = new List<Tuple<uint, int, JToken>>();
-            JTokenEqualityComparer comparer = new JTokenEqualityComparer();
             using (MemoryStream ms = new MemoryStream())
             {
                 BinaryWriter innerBw = new BinaryWriter(ms);
@@ -661,10 +660,10 @@ namespace MArchiveBatchTool.Psb
                     if (Optimize)
                     {
                         bool found = false;
-                        int hashCode = comparer.GetHashCode(item);
+                        int hashCode = jtokenComparer.GetHashCode(item);
                         foreach (var potentialEntry in tokenCache.Where(x => x.Item2 == hashCode))
                         {
-                            if (comparer.Equals(item, potentialEntry.Item3))
+                            if (jtokenComparer.Equals(item, potentialEntry.Item3))
                             {
                                 found = true;
                                 offsets.Add(potentialEntry.Item1);
@@ -708,17 +707,16 @@ namespace MArchiveBatchTool.Psb
                 {
                     List<uint> keyIndexes = new List<uint>();
                     List<Tuple<uint, int, JToken>> tokenCache = new List<Tuple<uint, int, JToken>>();
-                    JTokenEqualityComparer comparer = new JTokenEqualityComparer();
 
                     foreach (var entry in value.Values<JProperty>().OrderBy(x => x.Name, StringComparer.Ordinal))
                     {
                         if (Optimize)
                         {
                             bool found = false;
-                            int hashCode = comparer.GetHashCode(entry.Value);
+                            int hashCode = jtokenComparer.GetHashCode(entry.Value);
                             foreach (var potentialEntry in tokenCache.Where(x => x.Item2 == hashCode))
                             {
-                                if (comparer.Equals(entry.Value, potentialEntry.Item3))
+                                if (jtokenComparer.Equals(entry.Value, potentialEntry.Item3))
                                 {
                                     found = true;
                                     offsets.Add(potentialEntry.Item1);
