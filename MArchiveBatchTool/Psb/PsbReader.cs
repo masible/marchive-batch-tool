@@ -760,12 +760,10 @@ namespace MArchiveBatchTool.Psb
             foreach (var js in BStreamCache.Values)
             {
                 js.BinaryData = GetStreamData(js);
-                js.Reader = null;
             }
             foreach (var js in StreamCache.Values)
             {
                 js.BinaryData = GetStreamData(js);
-                js.Reader = null;
             }
         }
 

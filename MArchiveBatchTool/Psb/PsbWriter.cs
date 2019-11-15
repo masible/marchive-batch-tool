@@ -14,10 +14,19 @@ namespace MArchiveBatchTool.Psb
     {
         static readonly int STREAM_ALIGNMENT = 64;
 
+        class StreamCacheEntry
+        {
+            public string OrigValue { get; set; }
+            public List<JStream> Streams { get; set; } = new List<JStream>();
+            public long Length { get; set; }
+        }
+
         KeyNamesGenerator keyNamesGen;
         List<string> stringsCache = new List<string>();
-        List<Tuple<string, List<JStream>, long>> streamsCache = new List<Tuple<string, List<JStream>, long>>();
-        List<Tuple<string, List<JStream>, long>> bStreamsCache = new List<Tuple<string, List<JStream>, long>>();
+        Dictionary<string, StreamCacheEntry> streamsCache = new Dictionary<string, StreamCacheEntry>();
+        Dictionary<string, StreamCacheEntry> bStreamsCache = new Dictionary<string, StreamCacheEntry>();
+        List<StreamCacheEntry> sortedStreams;
+        List<StreamCacheEntry> sortedBStreams;
         JToken root;
         IPsbStreamSource streamSource;
         HashAlgorithm hasher;
@@ -151,7 +160,7 @@ namespace MArchiveBatchTool.Psb
 
         void WriteStreamsMeta(BinaryWriter bw, bool isBStream)
         {
-            var cache = isBStream ? bStreamsCache : streamsCache;
+            var cache = isBStream ? sortedBStreams : sortedStreams;
             if (isBStream)
                 bStreamsOffsetsOffset = (uint)bw.BaseStream.Position;
             else
@@ -164,7 +173,7 @@ namespace MArchiveBatchTool.Psb
             foreach (var entry in cache)
             {
                 offsets.Add(lastOffset);
-                var length = entry.Item3;
+                var length = entry.Length;
                 sizes.Add((uint)length);
                 // Add memory alignment
                 uint targetLength = (uint)((length + STREAM_ALIGNMENT - 1) / STREAM_ALIGNMENT * STREAM_ALIGNMENT);
@@ -181,7 +190,7 @@ namespace MArchiveBatchTool.Psb
 
         void WriteStreams(BinaryWriter bw, bool isBStream)
         {
-            var cache = isBStream ? bStreamsCache : streamsCache;
+            var cache = isBStream ? sortedBStreams : sortedStreams;
             if (cache.Count > 0)
             {
                 // Align stream
@@ -196,7 +205,7 @@ namespace MArchiveBatchTool.Psb
 
             foreach (var entry in cache)
             {
-                var stream = entry.Item2[0];
+                var stream = entry.Streams[0];
                 uint length;
                 if (stream.BinaryData != null)
                 {
@@ -205,7 +214,7 @@ namespace MArchiveBatchTool.Psb
                 }
                 else if (streamSource != null)
                 {
-                    using (Stream fs = streamSource.GetStream((string)stream))
+                    using (Stream fs = streamSource.GetStream(entry.OrigValue))
                     {
                         length = (uint)fs.Length;
                         fs.CopyTo(bw.BaseStream);
@@ -392,22 +401,28 @@ namespace MArchiveBatchTool.Psb
             if (doOptimize)
             {
                 string hashString = BitConverter.ToString(hash).Replace("-", string.Empty);
-                if (!cache.Select(x => x.Item1).Contains(hashString))
+                if (cache.TryGetValue(hashString, out var entry))
                 {
-                    stream.Index = (uint)cache.Count;
-                    cache.Add(new Tuple<string, List<JStream>, long>(hashString, new List<JStream> { stream }, length));
+                    entry.Streams.Add(stream);
                 }
                 else
                 {
-                    stream.Index = (uint)cache.FindIndex(x => x.Item1 == hashString);
-                    stream.Value = cache[(int)stream.Index].Item2[0].Value;
-                    cache[(int)stream.Index].Item2.Add(stream);
+                    cache.Add(hashString, new StreamCacheEntry
+                    {
+                        OrigValue = (string)stream,
+                        Streams = new List<JStream> { stream },
+                        Length = length
+                    });
                 }
             }
             else
             {
-                stream.Index = (uint)cache.Count;
-                cache.Add(new Tuple<string, List<JStream>, long>(null, new List<JStream> { stream }, length));
+                cache.Add(cache.Count.ToString(), new StreamCacheEntry
+                {
+                    OrigValue = (string)stream,
+                    Streams = new List<JStream> { stream },
+                    Length = length
+                });
             }
         }
 
@@ -420,14 +435,20 @@ namespace MArchiveBatchTool.Psb
         void SortStreamNodes(bool isBStream)
         {
             var cache = isBStream ? bStreamsCache : streamsCache;
-            cache.Sort((x, y) => x.Item3.CompareTo(y.Item3));
+            var sorted = cache.Values.ToList();
+            sorted.ForEach(s => s.Streams.Sort((x, y) => x.Index.CompareTo(y.Index)));
+            sorted = sorted.OrderBy(x => x.Length).ThenBy(x => x.Streams[0].Index).ToList();
             for (int i = 0; i < cache.Count; ++i)
             {
-                foreach (var stream in cache[i].Item2)
+                foreach (var stream in sorted[i].Streams)
                 {
                     stream.Index = (uint)i;
                 }
             }
+            if (isBStream)
+                sortedBStreams = sorted;
+            else
+                sortedStreams = sorted;
         }
 
         #region Tree writing functions
