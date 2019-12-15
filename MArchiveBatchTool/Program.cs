@@ -33,7 +33,7 @@ namespace MArchiveBatchTool
                     pathArgL.Accepts().ExistingFileOrDirectory();
                     var codecArgL = innerConfig.Argument("codec", "The codec used for packing/unpacking").IsRequired();
                     codecArgL.Accepts().Values(AVAILABLE_CODECS);
-                    var keyArgL = innerConfig.Argument("seed", "The static seed").IsRequired();
+                    var keyArgL = innerConfig.Argument("seed", "The static seed").IsRequired(allowEmptyStrings: true);
                     var keyLengthArgL = innerConfig.Argument<int>("keyLength", "The key cycle length").IsRequired();
                     var keepOptionL = innerConfig.Option("--keep", "Keep packed file", CommandOptionType.NoValue);
 
@@ -61,7 +61,7 @@ namespace MArchiveBatchTool
                     pathArgL.Accepts().ExistingFileOrDirectory();
                     var codecArgL = innerConfig.Argument("codec", "The codec used for packing/unpacking").IsRequired();
                     codecArgL.Accepts().Values(AVAILABLE_CODECS);
-                    var keyArgL = innerConfig.Argument("seed", "The static seed").IsRequired();
+                    var keyArgL = innerConfig.Argument("seed", "The static seed").IsRequired(allowEmptyStrings: true);
                     var keyLengthArgL = innerConfig.Argument<int>("keyLength", "The key cycle length").IsRequired();
                     var keepOptionL = innerConfig.Option("--keep", "Keep unpacked file", CommandOptionType.NoValue);
 
@@ -85,7 +85,7 @@ namespace MArchiveBatchTool
                 //pathArg.Accepts().ExistingFile();
                 //var codecArg = config.Argument("codec", "The codec used for packing/unpacking").IsRequired();
                 //codecArg.Accepts().Values(AVAILABLE_CODECS);
-                //var keyArg = config.Argument("seed", "The static seed").IsRequired();
+                //var keyArg = config.Argument("seed", "The static seed").IsRequired(allowEmptyStrings: true);
                 //var keyLengthArg = config.Argument<int>("keyLength", "The key cycle length").IsRequired();
                 //var keepOption = config.Option("--keep", "Keep input file", CommandOptionType.NoValue);
 
@@ -266,7 +266,7 @@ namespace MArchiveBatchTool
                 var pathArg = config.Argument("path", "The path of the archive to extract (.bin, .psb, .psb.m)").IsRequired();
                 var codecArg = config.Argument("codec", "The codec used for packing/unpacking").IsRequired();
                 codecArg.Accepts().Values(AVAILABLE_CODECS);
-                var mKeyArg = config.Argument("seed", "The static seed").IsRequired();
+                var mKeyArg = config.Argument("seed", "The static seed").IsRequired(allowEmptyStrings: true);
                 var mKeyLengthArg = config.Argument<int>("keyLength", "The key cycle length").IsRequired();
                 var keepOption = config.Option("--keep", "Keep packed file", CommandOptionType.NoValue);
                 var psbKeyOption = config.Option<uint>("--key", "Seed for Emote encryption filter", CommandOptionType.SingleValue);

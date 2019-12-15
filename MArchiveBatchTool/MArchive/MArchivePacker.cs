@@ -14,11 +14,8 @@ namespace MArchiveBatchTool.MArchive
 
         public MArchivePacker(IMArchiveCodec codec, string seed, int keyLength)
         {
-            if (codec == null) throw new ArgumentNullException(nameof(codec));
-            if (string.IsNullOrEmpty(seed)) throw new ArgumentNullException(nameof(seed));
-
-            this.codec = codec;
-            this.seed = seed;
+            this.codec = codec ?? throw new ArgumentNullException(nameof(codec));
+            this.seed = seed ?? throw new ArgumentNullException(nameof(seed));
             this.keyLength = keyLength;
         }
 

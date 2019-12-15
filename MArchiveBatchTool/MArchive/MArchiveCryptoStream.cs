@@ -16,7 +16,7 @@ namespace MArchiveBatchTool.MArchive
         {
             if (inStream == null) throw new ArgumentNullException(nameof(inStream));
             if (string.IsNullOrEmpty(fileName)) throw new ArgumentNullException(nameof(fileName));
-            if (string.IsNullOrEmpty(seed)) throw new ArgumentNullException(nameof(seed));
+            if (seed == null) throw new ArgumentNullException(nameof(seed));
 
             if (!inStream.CanSeek) throw new ArgumentException("Stream is not seekable.", nameof(inStream));
             stream = inStream;
