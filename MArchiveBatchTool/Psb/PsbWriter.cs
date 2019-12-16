@@ -12,7 +12,7 @@ namespace MArchiveBatchTool.Psb
 {
     public class PsbWriter
     {
-        static readonly int STREAM_ALIGNMENT = 64;
+        static readonly int STREAM_ALIGNMENT = 32;
 
         class StreamCacheEntry
         {
