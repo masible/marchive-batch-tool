@@ -99,35 +99,23 @@ namespace MArchiveBatchTool.Psb.Writing
 
                 if (terminalNode != null)
                 {
-                    // Check if we can place a terminal node before our current index
-                    int potentialTerminalIndex = (int)minChildIndex - (int)minChildValue;
-                    if (potentialTerminalIndex < 0 || usedRangeMap[potentialTerminalIndex])
+                    int terminalIndex = (int)minChildIndex - (int)minChildValue;
+                    while (terminalIndex < 0 || usedRangeMap[terminalIndex])
                     {
-                        try
-                        {
-                            // Occupied, try basing children on terminating node
-                            // This throws if it won't work
-                            FindFreeRange(minFreeSlot + minChildValue, cachedRange, out needExtending, true);
-                            ProcessTerminalNode(terminalNode, currNode, minFreeSlot);
-                            minChildIndex = terminalNode.Index + minChildValue;
-                        }
-                        catch (Exception)
-                        {
-                            // Just stick it at the end
-                            ProcessTerminalNode(terminalNode, currNode, maxFreeSlot);
-                            minChildIndex = terminalNode.Index + minChildValue;
-                            // Validate
-                            FindFreeRange(minChildIndex, cachedRange, out needExtending, true);
-                        }
+                        // Slide minChildIndex until we have slots where both the terminal node and
+                        // child range will fit
+                        if (terminalIndex < 0)
+                            minChildIndex += (uint)-terminalIndex;
+                        else
+                            ++minChildIndex;
+
+                        minChildIndex = FindFreeRange(minChildIndex, cachedRange, out needExtending, false);
+                        terminalIndex = (int)minChildIndex - (int)minChildValue;
                     }
-                    else
-                    {
-                        // Put terminating node down below
-                        ProcessTerminalNode(terminalNode, currNode, (uint)potentialTerminalIndex);
-                    }
+
+                    ProcessTerminalNode(terminalNode, currNode, (uint)terminalIndex);
                     terminalNodeProcessed = true;
                 }
-
 
                 if (needExtending)
                     ExtendRangeMap(minChildIndex + cachedRange[cachedRange.Count - 1]);
