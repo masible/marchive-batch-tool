@@ -52,9 +52,9 @@ namespace MArchiveBatchTool.Psb.Writing
             // 3. If a node has a terminating child, any non-terminating children are
             //    strictly based upon the current node's valueOffet
             // 4. Terminating node takes the first available index, unless it's child of
-            //    a node that contains regular child nodes, in which case it may appear
-            //    in the first available index, relative to the index of the first regular
-            //    child, or at the end of the currently used slots
+            //    a node that contains regular child nodes, in which case it is included
+            //    in free range location (i.e. first child value is NUL, and remaining
+            //    children are their byte values)
             // 5. Each node assigns index to terminating child first, then regular children,
             //    and after that child nodes are processed in depth-first order
             // 6. Gaps are OK
@@ -88,33 +88,37 @@ namespace MArchiveBatchTool.Psb.Writing
                 .Cast<RegularNameNode>().OrderBy(x => x.Character).ToArray();
             if (children.Length > 0)
             {
-                uint minChildIndex = Math.Max(minFreeSlot, children[0].Character + 1u);
                 uint minChildValue = children[0].Character;
-                foreach (var child in children)
-                {
-                    cachedRange.Add(child.Character - minChildValue);
-                }
+                uint minChildIndex;
                 bool needExtending;
-                minChildIndex = FindFreeRange(minChildIndex, cachedRange, out needExtending, false);
 
                 if (terminalNode != null)
                 {
-                    int terminalIndex = (int)minChildIndex - (int)minChildValue;
-                    while (terminalIndex < 0 || usedRangeMap[terminalIndex])
+                    // Search for free range as if null character was minChildValue
+                    cachedRange.Add(0);
+                    foreach (var child in children)
                     {
-                        // Slide minChildIndex until we have slots where both the terminal node and
-                        // child range will fit
-                        if (terminalIndex < 0)
-                            minChildIndex += (uint)-terminalIndex;
-                        else
-                            ++minChildIndex;
-
-                        minChildIndex = FindFreeRange(minChildIndex, cachedRange, out needExtending, false);
-                        terminalIndex = (int)minChildIndex - (int)minChildValue;
+                        cachedRange.Add(child.Character);
                     }
-
-                    ProcessTerminalNode(terminalNode, currNode, (uint)terminalIndex);
+                    uint terminalIndex = FindFreeRange(minFreeSlot, cachedRange, out needExtending, false);
+                    ProcessTerminalNode(terminalNode, currNode, terminalIndex);
                     terminalNodeProcessed = true;
+
+                    // Restore cached range to just child nodes
+                    cachedRange.RemoveAt(0);
+                    for (int i = 0; i < cachedRange.Count; ++i)
+                    {
+                        cachedRange[i] -= minChildValue;
+                    }
+                    minChildIndex = terminalIndex + minChildValue;
+                }
+                else
+                {
+                    foreach (var child in children)
+                    {
+                        cachedRange.Add(child.Character - minChildValue);
+                    }
+                    minChildIndex = FindFreeRange(Math.Max(minFreeSlot, minChildValue + 1u), cachedRange, out needExtending, false);
                 }
 
                 if (needExtending)
