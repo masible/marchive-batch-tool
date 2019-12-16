@@ -61,14 +61,12 @@ namespace MArchiveBatchTool.Psb.Writing
 
             IsProcessed = false;
             usedRangeMap = Enumerable.Repeat(false, totalNodes).ToList();
-            minFreeSlot = 0;
-            maxFreeSlot = 0;
 
             // Special case: root always occupies 0
             root.Index = 0;
             usedRangeMap[0] = true;
-            ++minFreeSlot;
-            ++maxFreeSlot;
+            minFreeSlot = 1;
+            maxFreeSlot = 1;
 
             ProcessNode(root);
             IsProcessed = true;
@@ -80,103 +78,63 @@ namespace MArchiveBatchTool.Psb.Writing
 
             if (OutputDebug) writer.Write($"{currNode.Index} {(char)currNode.Character} ");
 
-            TerminalNameNode terminalNode = currNode.Children.Select(x => x.Value)
-                .FirstOrDefault(x => x is TerminalNameNode) as TerminalNameNode;
-            bool terminalNodeProcessed = false;
-
-            var children = currNode.Children.Select(x => x.Value).Where(x => x is RegularNameNode)
-                .Cast<RegularNameNode>().OrderBy(x => x.Character).ToArray();
-            if (children.Length > 0)
+            var children = currNode.Children.Select(x => x.Value).OrderBy(x => x.Character).ToArray();
+            // It's only possible for root node to not have children
+            if (children.Length == 0)
             {
-                uint minChildValue = children[0].Character;
-                uint minChildIndex;
-                bool needExtending;
-
-                if (terminalNode != null)
-                {
-                    // Search for free range as if null character was minChildValue
-                    cachedRange.Add(0);
-                    foreach (var child in children)
-                    {
-                        cachedRange.Add(child.Character);
-                    }
-                    uint terminalIndex = FindFreeRange(minFreeSlot, cachedRange, out needExtending, false);
-                    ProcessTerminalNode(terminalNode, currNode, terminalIndex);
-                    terminalNodeProcessed = true;
-
-                    // Restore cached range to just child nodes
-                    cachedRange.RemoveAt(0);
-                    for (int i = 0; i < cachedRange.Count; ++i)
-                    {
-                        cachedRange[i] -= minChildValue;
-                    }
-                    minChildIndex = terminalIndex + minChildValue;
-                }
-                else
-                {
-                    foreach (var child in children)
-                    {
-                        cachedRange.Add(child.Character - minChildValue);
-                    }
-                    minChildIndex = FindFreeRange(Math.Max(minFreeSlot, minChildValue + 1u), cachedRange, out needExtending, false);
-                }
-
-                if (needExtending)
-                    ExtendRangeMap(minChildIndex + cachedRange[cachedRange.Count - 1]);
-
-                for (int i = 0; i < children.Length; ++i)
-                {
-                    var child = children[i];
-                    child.Index = minChildIndex + cachedRange[i];
-                    child.ParentIndex = currNode.Index;
-                    usedRangeMap[(int)child.Index] = true;
-                }
-
-                uint lastChildIndexFree = children[children.Length - 1].Index + 1;
-                if (lastChildIndexFree > maxFreeSlot) maxFreeSlot = lastChildIndexFree;
-
-                if (OutputDebug)
-                {
-                    if (children.Length == 1)
-                        writer.Write($"<{children[0].Index}>");
-                    else
-                        writer.Write($"<{children[0].Index} {children[children.Length - 1].Index}>");
-                }
-
-                if (terminalNode == null)
-                    currNode.ValueOffset = children[0].Index - children[0].Character;
-                UpdateMinFreeSlot();
-
-                if (OutputDebug)
-                {
-                    writer.WriteLine();
-                    ++writer.Indent;
-                }
-
-                foreach (var child in children)
-                    ProcessNode(child);
-
-                if (OutputDebug) --writer.Indent;
-            }
-
-            if (terminalNode != null && !terminalNodeProcessed)
-            {
-                ProcessTerminalNode(terminalNode, currNode, minFreeSlot);
                 if (OutputDebug) writer.WriteLine();
+                return;
             }
-        }
 
-        void ProcessTerminalNode(TerminalNameNode terminalNode, RegularNameNode currNode, uint slot)
-        {
-            terminalNode.Index = slot;
-            terminalNode.ParentIndex = currNode.Index;
-            currNode.ValueOffset = terminalNode.Index;
-            ExtendRangeMap(terminalNode.Index);
-            usedRangeMap[(int)terminalNode.Index] = true;
+            uint minChildValue = children[0].Character;
+            foreach (var child in children)
+            {
+                cachedRange.Add(child.Character - minChildValue);
+            }
+            bool needExtending;
+            uint minChildIndex = FindFreeRange(Math.Max(minFreeSlot, minChildValue + 1u), cachedRange, out needExtending, false);
+            if (needExtending)
+                ExtendRangeMap(minChildIndex + cachedRange[cachedRange.Count - 1]);
+
+            for (int i = 0; i < children.Length; ++i)
+            {
+                var child = children[i];
+                child.Index = minChildIndex + cachedRange[i];
+                child.ParentIndex = currNode.Index;
+                usedRangeMap[(int)child.Index] = true;
+            }
+
+            uint lastChildIndexFree = children[children.Length - 1].Index + 1;
+            if (lastChildIndexFree > maxFreeSlot) maxFreeSlot = lastChildIndexFree;
+
+            if (OutputDebug)
+            {
+                int i = 0;
+                if (children[0] is TerminalNameNode)
+                {
+                    writer.Write($"[{children[0].Index}] ");
+                    i = 1;
+                }
+
+                if (children.Length - i == 1)
+                    writer.Write($"<{children[i].Index}>");
+                else if (children.Length - i > 1)
+                    writer.Write($"<{children[i].Index} {children[children.Length - 1].Index}>");
+            }
+
+            currNode.ValueOffset = minChildIndex - minChildValue;
             UpdateMinFreeSlot();
-            // Just in case
-            if (terminalNode.Index + 1 > maxFreeSlot) maxFreeSlot = terminalNode.Index + 1;
-            if (OutputDebug) Console.Write($"[{slot}] ");
+
+            if (OutputDebug)
+            {
+                writer.WriteLine();
+                ++writer.Indent;
+            }
+
+            foreach (RegularNameNode child in children.Where(c => c is RegularNameNode))
+                ProcessNode(child);
+
+            if (OutputDebug) --writer.Indent;
         }
 
         void UpdateMinFreeSlot()
