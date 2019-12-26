@@ -5,11 +5,21 @@ using System.Text;
 
 namespace MArchiveBatchTool.Psb.Writing
 {
+    /// <summary>
+    /// Represents a regular name node.
+    /// </summary>
     public class RegularNameNode : NameNode
     {
+        /// <summary>
+        /// Gets or sets the offset between the index of the lowest child and its value.
+        /// </summary>
         public uint ValueOffset { get; set; }
-        public Dictionary<byte, NameNode> Children { get; } = new Dictionary<byte, NameNode>();
+        /// <summary>
+        /// Gets the children of this node. The key is the value of the corresponding node.
+        /// </summary>
+        public IDictionary<byte, NameNode> Children { get; } = new Dictionary<byte, NameNode>();
 
+        /// <inheritdoc/>
         public override void WriteDot(TextWriter writer)
         {
             string outputChar;

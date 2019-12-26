@@ -7,11 +7,26 @@ using Meisui.Random;
 
 namespace MArchiveBatchTool.MArchive
 {
+    /// <summary>
+    /// Represents a stream that performs inline crypto of an MArchive stream.
+    /// </summary>
     public class MArchiveCryptoStream : Stream
     {
         Stream stream;
         byte[] keyBuffer;
 
+        /// <summary>
+        /// Instantiates an instance of <see cref="MArchiveCryptoStream"/>.
+        /// </summary>
+        /// <param name="inStream">The stream to encrypt or decrypt.</param>
+        /// <param name="fileName">The file name of the stream.</param>
+        /// <param name="seed">The crypto seed.</param>
+        /// <param name="keyLength">The period of the key stream.</param>
+        /// <exception cref="ArgumentNullException">
+        /// If <paramref name="inStream"/> or <paramref name="seed"/> is <c>null</c>, or if
+        /// <paramref name="fileName"/> is <c>null</c> or empty.
+        /// </exception>
+        /// <exception cref="ArgumentException">If <paramref name="inStream"/> is not seekable.</exception>
         public MArchiveCryptoStream(Stream inStream, string fileName, string seed, int keyLength)
         {
             if (inStream == null) throw new ArgumentNullException(nameof(inStream));
@@ -47,21 +62,28 @@ namespace MArchiveBatchTool.MArchive
             }
         }
 
+        /// <inheritdoc/>
         public override bool CanRead => stream.CanRead;
 
+        /// <inheritdoc/>
         public override bool CanSeek => stream.CanSeek;
 
+        /// <inheritdoc/>
         public override bool CanWrite => stream.CanWrite;
 
+        /// <inheritdoc/>
         public override long Length => stream.Length;
 
+        /// <inheritdoc/>
         public override long Position { get => stream.Position; set => stream.Position = value; }
 
+        /// <inheritdoc/>
         public override void Flush()
         {
             stream.Flush();
         }
 
+        /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
             long startPos = stream.Position;
@@ -70,16 +92,19 @@ namespace MArchiveBatchTool.MArchive
             return read;
         }
 
+        /// <inheritdoc/>
         public override long Seek(long offset, SeekOrigin origin)
         {
             return stream.Seek(offset, origin);
         }
 
+        /// <inheritdoc/>
         public override void SetLength(long value)
         {
             stream.SetLength(value);
         }
 
+        /// <inheritdoc/>
         public override void Write(byte[] buffer, int offset, int count)
         {
             // We have to check arguments here because the stream only gets to
@@ -96,6 +121,7 @@ namespace MArchiveBatchTool.MArchive
             stream.Write(dup, offset, count);
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (disposing)

@@ -6,6 +6,9 @@ using System.CodeDom.Compiler;
 
 namespace MArchiveBatchTool.Psb.Writing
 {
+    /// <summary>
+    /// Standard key names encoder that tries to fit ranges compactly.
+    /// </summary>
     public class StandardKeyNamesEncoder : IKeyNamesEncoder
     {
         List<bool> usedRangeMap;
@@ -15,8 +18,10 @@ namespace MArchiveBatchTool.Psb.Writing
         bool outputDebug;
         IndentedTextWriter writer;
 
+        /// <inheritdoc/>
         public bool IsProcessed { get; private set; }
 
+        /// <inheritdoc/>
         public int TotalSlots
         {
             get
@@ -26,6 +31,9 @@ namespace MArchiveBatchTool.Psb.Writing
             }
         }
 
+        /// <summary>
+        /// Gets or sets whether to write debug tree to standard output.
+        /// </summary>
         public bool OutputDebug
         {
             get
@@ -40,7 +48,7 @@ namespace MArchiveBatchTool.Psb.Writing
             }
         }
 
-
+        /// <inheritdoc/>
         public void Process(RegularNameNode root, int totalNodes)
         {
             // Rules

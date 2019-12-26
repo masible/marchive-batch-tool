@@ -9,6 +9,9 @@ using MArchiveBatchTool.Psb.Writing;
 
 namespace MArchiveBatchTool.Psb
 {
+    /// <summary>
+    /// Reads a PSB file to a <see cref="JToken"/>.
+    /// </summary>
     public class PsbReader : IDisposable
     {
         internal static readonly PsbTokenType[] IdToTypeMapping =
@@ -43,6 +46,8 @@ namespace MArchiveBatchTool.Psb
         BinaryReader br;
         IPsbFilter filter;
         KeyNamesReader keyNames;
+        Dictionary<uint, JStream> streamCache = new Dictionary<uint, JStream>();
+        Dictionary<uint, JStream> bStreamCache = new Dictionary<uint, JStream>();
         IndentedTextWriter debugWriter;
         bool lazyStreamLoading;
         bool disposed;
@@ -68,8 +73,18 @@ namespace MArchiveBatchTool.Psb
 
         JToken root;
 
+        /// <summary>
+        /// Gets the version of the PSB file.
+        /// </summary>
         public ushort Version { get; private set; }
+        /// <summary>
+        /// Gets the flags set in the header of the PSB file.
+        /// </summary>
         public PsbFlags Flags { get; private set; }
+        /// <summary>
+        /// Gets the root token of the PSB file.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">Trying to obtain root after reader was closed.</exception>
         public JToken Root
         {
             get
@@ -89,10 +104,39 @@ namespace MArchiveBatchTool.Psb
                 return root;
             }
         }
-        public Dictionary<uint, JStream> StreamCache { get; } = new Dictionary<uint, JStream>();
-        public Dictionary<uint, JStream> BStreamCache { get; } = new Dictionary<uint, JStream>();
+        /// <summary>
+        /// Gets the stream cache. Index on the stream's ID to get the corresponding <see cref="JStream"/>.
+        /// </summary>
+        public IReadOnlyDictionary<uint, JStream> StreamCache => streamCache;
+        /// <summary>
+        /// Gets the B-stream cache. Index on the stream's ID to get the corresponding <see cref="JStream"/>.
+        /// </summary>
+        public IReadOnlyDictionary<uint, JStream> BStreamCache => bStreamCache;
+        /// <summary>
+        /// Gets whether lazy stream loading is enabled.
+        /// </summary>
+        /// <remarks>
+        /// <para>Lazy loading allows you to delay loading stream contents until you try to read from them.</para>
+        /// 
+        /// <para>If lazy loading is enabled and you want to be able to read streams and B-streams after
+        /// closing the reader, you must call <see cref="LoadAllStreamData"/> before closing the reader.</para>
+        /// </remarks>
+        public bool IsLazyStreamLoading => lazyStreamLoading;
+        /// <summary>
+        /// Gets the key names reader.
+        /// </summary>
         internal KeyNamesReader KeyNames => keyNames;
 
+        /// <summary>
+        /// Instantiates a new instance of <see cref="PsbReader"/> and loads the PSB's header.
+        /// </summary>
+        /// <param name="stream">The input stream.</param>
+        /// <param name="filter">Optional filter for encrypted PSBs.</param>
+        /// <param name="debugWriter">Optional <see cref="TextWriter"/> to write PSB reading debug info into.</param>
+        /// <param name="lazyStreamLoading">Whether lazy stream loading is enabled.</param>
+        /// <exception cref="ArgumentNullException">The <paramref name="stream"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException">The <paramref name="stream"/> cannot be seeked.</exception>
+        /// <exception cref="InvalidDataException">The file is not in PSB format.</exception>
         public PsbReader(Stream stream, IPsbFilter filter = null, TextWriter debugWriter = null,
             bool lazyStreamLoading = true)
         {
@@ -266,6 +310,13 @@ namespace MArchiveBatchTool.Psb
                 throw new ObjectDisposedException(GetType().FullName);
         }
 
+        /// <summary>
+        /// Copies the unfiltered stream to <paramref name="stream"/>.
+        /// </summary>
+        /// <param name="stream">The stream to copy to.</param>
+        /// <remarks>
+        /// For debugging purposes.
+        /// </remarks>
         public void DumpDecryptedStream(Stream stream)
         {
             CheckDisposed();
@@ -273,20 +324,33 @@ namespace MArchiveBatchTool.Psb
             this.stream.CopyTo(stream);
         }
 
-        public Dictionary<uint, NameNode> GenerateNameNodes()
+        /// <summary>
+        /// Generates key name nodes.
+        /// </summary>
+        /// <returns>A dictionary of generated key name nodes, where the key is ID of the corresponding node.</returns>
+        /// <remarks>
+        /// For debugging purposes.
+        /// </remarks>
+        public IDictionary<uint, NameNode> GenerateNameNodes()
         {
             return keyNames.GenerateNodes();
         }
 
+        /// <summary>
+        /// Closes the reader.
+        /// </summary>
         public void Close()
         {
             disposed = true;
             stream.Close();
             root = null;
-            StreamCache.Clear();
-            BStreamCache.Clear();
+            streamCache.Clear();
+            bStreamCache.Clear();
         }
 
+        /// <summary>
+        /// Closes the reader.
+        /// </summary>
         public void Dispose()
         {
             Close();
@@ -535,7 +599,7 @@ namespace MArchiveBatchTool.Psb
                 js.BinaryData = data;
                 js.Reader = null;
             }
-            StreamCache[index] = js;
+            streamCache[index] = js;
             return js;
         }
 
@@ -721,7 +785,7 @@ namespace MArchiveBatchTool.Psb
                 js.BinaryData = data;
                 js.Reader = null;
             }
-            BStreamCache[index] = js;
+            bStreamCache[index] = js;
             return js;
         }
 
@@ -738,6 +802,12 @@ namespace MArchiveBatchTool.Psb
         }
         #endregion
 
+        /// <summary>
+        /// Gets the data associated with a <see cref="JStream"/>.
+        /// </summary>
+        /// <param name="js">The <see cref="JStream"/> to get the data for.</param>
+        /// <returns>A <see cref="T:byte[]"/> containing the data corresponding to <paramref name="js"/>.</returns>
+        /// <exception cref="ArgumentException">When <paramref name="js"/> does not belong to this reader.</exception>
         internal byte[] GetStreamData(JStream js)
         {
             if (js.Reader != this) throw new ArgumentException("Stream does not belong to this reader.", nameof(js));
@@ -754,9 +824,12 @@ namespace MArchiveBatchTool.Psb
             }
         }
 
-        // Decouples JStreams from the reader
+        /// <summary>
+        /// Decouples <see cref="JStream"/>s from the reader.
+        /// </summary>
         public void LoadAllStreamData()
         {
+            if (!lazyStreamLoading) return;
             foreach (var js in BStreamCache.Values)
             {
                 js.BinaryData = GetStreamData(js);
@@ -765,8 +838,12 @@ namespace MArchiveBatchTool.Psb
             {
                 js.BinaryData = GetStreamData(js);
             }
+            lazyStreamLoading = false;
         }
 
+        /// <summary>
+        /// Reads key names from PSB files.
+        /// </summary>
         internal class KeyNamesReader
         {
             uint[] valueOffsets;
@@ -774,6 +851,10 @@ namespace MArchiveBatchTool.Psb
             uint[] tails;
             Dictionary<uint, string> cache = new Dictionary<uint, string>();
 
+            /// <summary>
+            /// Instantiates a new instance of <see cref="KeyNamesReader"/>.
+            /// </summary>
+            /// <param name="reader">The reader to load key names from.</param>
             public KeyNamesReader(PsbReader reader)
             {
                 if (reader.Version == 1)
@@ -796,6 +877,16 @@ namespace MArchiveBatchTool.Psb
                 }
             }
 
+            /// <summary>
+            /// Instantiates a new instance of <see cref="KeyNamesReader"/> from an unpacked tree.
+            /// </summary>
+            /// <param name="valueOffsets">The offsets array.</param>
+            /// <param name="tree">The parent pointers.</param>
+            /// <param name="tails">The tails array.</param>
+            /// <exception cref="ArgumentNullException">
+            /// If any of <paramref name="valueOffsets"/>, <paramref name="tree"/>, or
+            /// <paramref name="tails"/> is <c>null</c>.
+            /// </exception>
             internal KeyNamesReader(uint[] valueOffsets, uint[] tree, uint[] tails)
             {
                 this.valueOffsets = valueOffsets ?? throw new ArgumentNullException(nameof(valueOffsets));
@@ -803,8 +894,16 @@ namespace MArchiveBatchTool.Psb
                 this.tails = tails ?? throw new ArgumentNullException(nameof(tails));
             }
 
+            /// <summary>
+            /// Gets the number of key names.
+            /// </summary>
             public int Count => tails?.Length ?? cache.Count;
 
+            /// <summary>
+            /// Gets a key name.
+            /// </summary>
+            /// <param name="index">The index of the key name.</param>
+            /// <returns>The key name at <paramref name="index"/>.</returns>
             public string this[uint index]
             {
                 get
@@ -830,6 +929,11 @@ namespace MArchiveBatchTool.Psb
                 }
             }
 
+            /// <summary>
+            /// Generates key name nodes.
+            /// </summary>
+            /// <returns>A dictionary of generated key name nodes, where the key is ID of the corresponding node.</returns>
+            /// <exception cref="InvalidOperationException">When nodes are stored in a single array instead of a tree.</exception>
             public Dictionary<uint, NameNode> GenerateNodes()
             {
                 if (tree == null) throw new InvalidOperationException("Names are stored flat, not in a tree.");

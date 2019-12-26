@@ -4,6 +4,9 @@ using System.Text;
 
 namespace MArchiveBatchTool.Psb.Writing
 {
+    /// <summary>
+    /// Generates key names tree.
+    /// </summary>
     class KeyNamesGenerator
     {
         List<string> strings = new List<string>();
@@ -15,6 +18,10 @@ namespace MArchiveBatchTool.Psb.Writing
         uint[] tree;
         uint[] tails;
 
+        /// <summary>
+        /// Gets the offsets array.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">When the tree has not been generated or the tree is flat.</exception>
         public uint[] ValueOffsets
         {
             get
@@ -25,6 +32,10 @@ namespace MArchiveBatchTool.Psb.Writing
             }
         }
 
+        /// <summary>
+        /// Gets the parent pointers array.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">When the tree has not been generated or the tree is flat.</exception>
         public uint[] Tree
         {
             get
@@ -35,6 +46,10 @@ namespace MArchiveBatchTool.Psb.Writing
             }
         }
 
+        /// <summary>
+        /// Gets the tails array.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">When the tree has not been generated or the tree is flat.</exception>
         public uint[] Tails
         {
             get
@@ -45,16 +60,39 @@ namespace MArchiveBatchTool.Psb.Writing
             }
         }
 
+        /// <summary>
+        /// Gets whether the tree has been generated.
+        /// </summary>
         public bool IsGenerated { get; private set; }
+        /// <summary>
+        /// Gets whether a flat array is to be generated instead of a tree.
+        /// </summary>
         public bool IsFlat { get; private set; }
+        /// <summary>
+        /// Gets the number of key names in the generator.
+        /// </summary>
         public int Count => strings.Count;
 
+        /// <summary>
+        /// Instantiates a new instance of <see cref="KeyNamesGenerator"/>.
+        /// </summary>
+        /// <param name="encoder">The encoder to use for ordering tree nodes.</param>
+        /// <param name="isFlat">Whether to generate a flat array instead of a tree.</param>
+        /// <exception cref="ArgumentNullException">When encoder is <c>null</c> if not generating flat array.</exception>
         public KeyNamesGenerator(IKeyNamesEncoder encoder, bool isFlat)
         {
+            if (!isFlat && encoder == null)
+                throw new ArgumentNullException(nameof(encoder), "Encoder not supplied when not flat.");
             this.encoder = encoder;
             IsFlat = isFlat;
         }
 
+        /// <summary>
+        /// Adds a key name into the generator.
+        /// </summary>
+        /// <param name="s">The key name to add.</param>
+        /// <exception cref="InvalidOperationException">When the tree has already been generated.</exception>
+        /// <exception cref="ArgumentNullException">When <paramref name="s"/> is <c>null</c>.</exception>
         public void AddString(string s)
         {
             if (IsGenerated) throw new InvalidOperationException("Tree already generated.");
@@ -63,6 +101,10 @@ namespace MArchiveBatchTool.Psb.Writing
                 strings.Add(s);
         }
 
+        /// <summary>
+        /// Generates the key names tree.
+        /// </summary>
+        /// <remarks>This is a one-time only operation.</remarks>
         public void Generate()
         {
             // Can't be bothered to reset everything, so this is a one-time only operation
@@ -160,6 +202,11 @@ namespace MArchiveBatchTool.Psb.Writing
             if (IsFlat) throw new InvalidOperationException("Only available when not flat.");
         }
 
+        /// <summary>
+        /// Gets the index of a key name.
+        /// </summary>
+        /// <param name="s">The key name to get the index of.</param>
+        /// <returns>The index corresponding to <paramref name="s"/>.</returns>
         public uint this[string s]
         {
             get
@@ -169,6 +216,11 @@ namespace MArchiveBatchTool.Psb.Writing
             }
         }
 
+        /// <summary>
+        /// Gets the key name at <paramref name="i"/>.
+        /// </summary>
+        /// <param name="i">The index.</param>
+        /// <returns>The key name.</returns>
         public string this[int i]
         {
             get

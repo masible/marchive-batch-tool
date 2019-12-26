@@ -10,8 +10,16 @@ using MArchiveBatchTool.Psb.Writing;
 
 namespace MArchiveBatchTool.Psb
 {
+    /// <summary>
+    /// A collection of PSB analysis functions.
+    /// </summary>
     static class Analysis
     {
+        /// <summary>
+        /// Generates a GraphViz DOT file for visualizing key name nodes.
+        /// </summary>
+        /// <param name="writer">The writer to write the DOT file to.</param>
+        /// <param name="reader">The reader to read PSB from.</param>
         public static void GenerateNameGraphDot(TextWriter writer, PsbReader reader)
         {
             var nodes = reader.GenerateNameNodes();
@@ -25,6 +33,11 @@ namespace MArchiveBatchTool.Psb
             writer.WriteLine("}");
         }
 
+        /// <summary>
+        /// Generates a debug trace of key name nodes.
+        /// </summary>
+        /// <param name="writer">The writer to write the trace to.</param>
+        /// <param name="reader">The reader to read PSB from.</param>
         public static void GenerateNameRanges(TextWriter writer, PsbReader reader)
         {
             var nodes = reader.GenerateNameNodes();
@@ -66,6 +79,11 @@ namespace MArchiveBatchTool.Psb
             }
         }
 
+        /// <summary>
+        /// Generates a visualization of key names node range usage.
+        /// </summary>
+        /// <param name="writer">The writer to write the visualization to.</param>
+        /// <param name="reader">The reader to read PSB from.</param>
         public static void GenerateRangeUsageVisualization(TextWriter writer, PsbReader reader)
         {
             RangeUsageAnalyzer analyzer = new RangeUsageAnalyzer();
@@ -98,6 +116,12 @@ namespace MArchiveBatchTool.Psb
             analyzer.WriteVisualization(writer);
         }
 
+        /// <summary>
+        /// Generates a key name tree and writes original and generated key names to <paramref name="writer"/>.
+        /// </summary>
+        /// <param name="writer">The writer to write the original and generated key names to.</param>
+        /// <param name="reader">The reader to read PSB from.</param>
+        /// <returns>Whether the original and generated key names match.</returns>
         public static bool TestKeyNamesGeneration(TextWriter writer, PsbReader reader)
         {
             KeyNamesGenerator generator = new KeyNamesGenerator(
@@ -126,6 +150,14 @@ namespace MArchiveBatchTool.Psb
             return true;
         }
 
+        /// <summary>
+        /// Tests reserialized and deserialized PSB is identical to original deserialization.
+        /// </summary>
+        /// <param name="reader">The initial PSB reader.</param>
+        /// <param name="psbOutPath">The path to write serialized PSB to.</param>
+        /// <param name="jsonWriter">The JSON writer to write newly deserialized PSB to.</param>
+        /// <param name="debugWriter">Optional debug writer to write deserialization debug data to.</param>
+        /// <returns>Whether the originally read PSB and newly serialized PSB are semantically identical.</returns>
         public static bool TestSerializeDeserialize(PsbReader reader, string psbOutPath, TextWriter jsonWriter, TextWriter debugWriter)
         {
             using (MemoryStream ms = new MemoryStream())
@@ -147,6 +179,15 @@ namespace MArchiveBatchTool.Psb
             }
         }
 
+        /// <summary>
+        /// Tests serialized and deserialized PSB is identical to the original root.
+        /// </summary>
+        /// <param name="root">The token to serialize.</param>
+        /// <param name="streamSource">The stream source for <see cref="JStream"/>s in <paramref name="root"/>.</param>
+        /// <param name="psbOutPath">The path to write serialized PSB to.</param>
+        /// <param name="jsonWriter">The JSON writer to write newly deserialized PSB to.</param>
+        /// <param name="debugWriter">Optional debug writer to write deserialization debug data to.</param>
+        /// <returns>Whether the originally read PSB and newly serialized PSB are semantically identical.</returns>
         public static bool TestSerializeDeserialize(JToken root, IPsbStreamSource streamSource, string psbOutPath, TextWriter jsonWriter, TextWriter debugWriter)
         {
             using (FileStream fs = File.Create(psbOutPath))

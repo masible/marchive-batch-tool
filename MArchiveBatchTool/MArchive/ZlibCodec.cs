@@ -6,15 +6,21 @@ using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
 namespace MArchiveBatchTool.MArchive
 {
+    /// <summary>
+    /// Represents a Zlib codec.
+    /// </summary>
     public class ZlibCodec : IMArchiveCodec
     {
+        /// <inheritdoc/>
         public uint Magic => 0x0066646d; // "mdf\0"
 
+        /// <inheritdoc/>
         public Stream GetCompressionStream(Stream inStream)
         {
             return new DeflaterOutputStream(inStream);
         }
 
+        /// <inheritdoc/>
         public Stream GetDecompressionStream(Stream inStream)
         {
             return new InflaterInputStream(inStream);

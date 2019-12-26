@@ -10,14 +10,29 @@ using MArchiveBatchTool.Psb.Writing;
 
 namespace MArchiveBatchTool.Psb
 {
+    /// <summary>
+    /// Serializes <see cref="JToken"/>s to PSB format.
+    /// </summary>
     public class PsbWriter
     {
         static readonly int STREAM_ALIGNMENT = 32;
 
+        /// <summary>
+        /// Represents a stream cache entry.
+        /// </summary>
         class StreamCacheEntry
         {
+            /// <summary>
+            /// Gets or sets the original name of the stream.
+            /// </summary>
             public string OrigValue { get; set; }
+            /// <summary>
+            /// Gets or sets a list of <see cref="JStream"/>s with the same data.
+            /// </summary>
             public List<JStream> Streams { get; set; } = new List<JStream>();
+            /// <summary>
+            /// Gets or sets the length of the data.
+            /// </summary>
             public long Length { get; set; }
         }
 
@@ -45,10 +60,31 @@ namespace MArchiveBatchTool.Psb
         uint bStreamsSizesOffset;
         uint bStreamsBlobOffset;
 
+        /// <summary>
+        /// Gets or sets the version of PSB to write.
+        /// </summary>
         public ushort Version { get; set; }
+        /// <summary>
+        /// Gets or sets the flags for the PSB header.
+        /// </summary>
         public PsbFlags Flags { get; set; }
+        /// <summary>
+        /// Gets or sets whether to optimize when writing.
+        /// </summary>
+        /// <remarks>
+        /// Optimization reduces space usage by reusing offsets of duplicate tokens within a collection.
+        /// It takes longer to write a PSB with optimization enabled. It is enabled by default.
+        /// </remarks>
         public bool Optimize { get; set; } = true;
 
+        /// <summary>
+        /// Instantiates a new instance of <see cref="PsbWriter"/>.
+        /// </summary>
+        /// <param name="root">The root of the PSB.</param>
+        /// <param name="streamSource">
+        /// Source for <see cref="JStream"/>s that need to be copied. Can be <c>null</c>
+        /// if <paramref name="root"/> came directly from a <see cref="PsbReader"/>.
+        /// </param>
         public PsbWriter(JToken root, IPsbStreamSource streamSource)
         {
             this.root = root;
@@ -56,6 +92,15 @@ namespace MArchiveBatchTool.Psb
             hasher = SHA1.Create();
         }
 
+        /// <summary>
+        /// Writes root to <paramref name="stream"/> in PSB format.
+        /// </summary>
+        /// <param name="stream">The stream to write to.</param>
+        /// <param name="filter">Optional filter for encryption.</param>
+        /// <exception cref="ArgumentNullException">When <paramref name="stream"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException">When <paramref name="stream"/> is not seekable.</exception>
+        /// <exception cref="NotSupportedException">When the version requested is not supported.</exception>
+        /// <exception cref="Exception">When there is no source for a <see cref="JStream"/>.</exception>
         public void Write(Stream stream, IPsbFilter filter = null)
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));

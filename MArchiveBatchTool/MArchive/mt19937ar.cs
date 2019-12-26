@@ -65,6 +65,9 @@ using System;
 namespace Meisui.Random
 {
 
+    /// <summary>
+    /// Represents a Mersenne Twister random number generator.
+    /// </summary>
     public class MersenneTwister
     {
 
@@ -82,12 +85,19 @@ namespace Meisui.Random
 
         #region "Constructor"
 
+        /// <summary>
+        /// Instantiates an instance of <see cref="MersenneTwister"/> with a specific seed.
+        /// </summary>
+        /// <param name="s">The seed to initialize the RNG with.</param>
         public MersenneTwister(UInt32 s)
         {
             MT();
             init_genrand(s);
         }
 
+        /// <summary>
+        /// Instantiates an instance of <see cref="MersenneTwister"/> with a random seed.
+        /// </summary>
         // coded by Mitil. 2006/01/04
         public MersenneTwister()
         {
@@ -118,6 +128,10 @@ namespace Meisui.Random
             rnseed = null;
         }
 
+        /// <summary>
+        /// Instantiates an instance of <see cref="MersenneTwister"/> with a key array.
+        /// </summary>
+        /// <param name="init_key">The key array.</param>
         public MersenneTwister(UInt32[] init_key)
         {
             MT();
@@ -138,6 +152,9 @@ namespace Meisui.Random
         #endregion
 
         #region "Destructor"
+        /// <summary>
+        /// Finalizes the <see cref="MersenneTwister"/>.
+        /// </summary>
         ~MersenneTwister()
         {
             mt = null;
@@ -197,6 +214,10 @@ namespace Meisui.Random
         #endregion
 
         #region "Get Unsigned Int 32bit number"
+        /// <summary>
+        /// Generates a random signed 32-bit integer.
+        /// </summary>
+        /// <returns>A random number.</returns>
         /* generates a random number on [0,0xffffffff]-Interval */
         public UInt32 genrand_Int32()
         {
@@ -238,6 +259,10 @@ namespace Meisui.Random
         #endregion
 
         #region "Get Int31 number"
+        /// <summary>
+        /// Generates a random 31-bit integer.
+        /// </summary>
+        /// <returns>A random number 0 &lt;= x &lt;= 0x7fffffff.</returns>
         /* generates a random number on [0,0x7fffffff]-Interval */
         public UInt32 genrand_Int31()
         {
@@ -246,6 +271,10 @@ namespace Meisui.Random
         #endregion
 
         #region "Get type'double' number"
+        /// <summary>
+        /// Generates a random floating point number.
+        /// </summary>
+        /// <returns>A double precision floating point number on range [0, 1].</returns>
         /* generates a random number on [0,1]-real-Interval */
         public double genrand_real1()
         {
@@ -253,6 +282,10 @@ namespace Meisui.Random
             /* divided by 2^32-1 */
         }
 
+        /// <summary>
+        /// Generates a random floating point number.
+        /// </summary>
+        /// <returns>A double precision floating point number on range [0, 1).</returns>
         /* generates a random number on [0,1)-real-Interval */
         public double genrand_real2()
         {
@@ -260,6 +293,10 @@ namespace Meisui.Random
             /* divided by 2^32 */
         }
 
+        /// <summary>
+        /// Generates a random floating point number.
+        /// </summary>
+        /// <returns>A double precision floating point number on range (0, 1].</returns>
         /* generates a random number on (0,1)-real-Interval */
         public double genrand_real3()
         {
@@ -267,6 +304,10 @@ namespace Meisui.Random
             /* divided by 2^32 */
         }
 
+        /// <summary>
+        /// Generates a random floating point number.
+        /// </summary>
+        /// <returns>A double precision floating point number on range [0, 1) with 53-bit resolution.</returns>
         /* generates a random number on [0,1) with 53-bit resolution*/
         public double genrand_res53()
         {

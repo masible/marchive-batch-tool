@@ -8,11 +8,26 @@ using MArchiveBatchTool.Models;
 
 namespace MArchiveBatchTool.MArchive
 {
+    /// <summary>
+    /// A collection of functions for manipulating archive files.
+    /// </summary>
     public static class AllDataPacker
     {
         static readonly int ALIGNMENT = 2048;
 
-        public static void UnpackFiles(string psbPath, string outputPath, MArchivePacker maPacker = null)
+        /// <summary>
+        /// Unpacks an archive file.
+        /// </summary>
+        /// <param name="psbPath">The path of archive .psb. Can also be .bin or .psb.m.</param>
+        /// <param name="outputPath">The path to write unpacked files.</param>
+        /// <param name="maPacker">Optional <see cref="MArchivePacker"/> if unpacking .psb.m.</param>
+        /// <param name="filter">The <see cref="IPsbFilter"/> to use to decode the PSB file.</param>
+        /// <exception cref="ArgumentNullException">
+        /// If .psb.m is provided in <paramref name="psbPath"/> but <paramref name="maPacker"/>
+        /// is <c>null</c>.
+        /// </exception>
+        /// <exception cref="InvalidDataException">If PSB file does not represent an archive.</exception>
+        public static void UnpackFiles(string psbPath, string outputPath, MArchivePacker maPacker = null, IPsbFilter filter = null)
         {
             // Figure out what file we've been given
             if (Path.GetExtension(psbPath).ToLower() == ".bin")
@@ -31,7 +46,7 @@ namespace MArchiveBatchTool.MArchive
 
             ArchiveV1 arch;
             using (FileStream fs = File.OpenRead(psbPath))
-            using (PsbReader reader = new PsbReader(fs))
+            using (PsbReader reader = new PsbReader(fs, filter))
             {
                 var root = reader.Root;
                 arch = root.ToObject<ArchiveV1>();
@@ -56,6 +71,13 @@ namespace MArchiveBatchTool.MArchive
             }
         }
 
+        /// <summary>
+        /// Builds an archive file.
+        /// </summary>
+        /// <param name="folderPath">The directory to make an archive from.</param>
+        /// <param name="outputPath">The path of the resulting archive file. Do not include file extension.</param>
+        /// <param name="maPacker">Optional <see cref="MArchivePacker"/> if archive PSB is to be compressed.</param>
+        /// <param name="filter">The <see cref="IPsbFilter"/> to use to encode the PSB file.</param>
         public static void Build(string folderPath, string outputPath, MArchivePacker maPacker = null, IPsbFilter filter = null)
         {
             using (FileStream packStream = File.Create(outputPath + ".bin"))

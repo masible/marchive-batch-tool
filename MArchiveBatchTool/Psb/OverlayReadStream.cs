@@ -5,6 +5,9 @@ using System.IO;
 
 namespace MArchiveBatchTool.Psb
 {
+    /// <summary>
+    /// Represents a stream with a section that has been filtered by a <see cref="IPsbFilter"/>.
+    /// </summary>
     class OverlayReadStream : Stream
     {
         Stream baseStream;
@@ -13,6 +16,14 @@ namespace MArchiveBatchTool.Psb
         long overlayEnd;
         bool isDisposed;
 
+        /// <summary>
+        /// Instantiates a new instance of <see cref="OverlayReadStream"/>.
+        /// </summary>
+        /// <param name="baseStream">The base stream.</param>
+        /// <param name="overlayStart">The starting offset of the filtered data.</param>
+        /// <param name="overlayEnd">The ending offset of the filtered data.</param>
+        /// <param name="filter">The filter to apply over the data.</param>
+        /// <exception cref="IOException">If the data to be filtered cannot be read.</exception>
         public OverlayReadStream(Stream baseStream, uint overlayStart, uint overlayEnd, IPsbFilter filter)
         {
             this.baseStream = baseStream;
@@ -27,21 +38,28 @@ namespace MArchiveBatchTool.Psb
             baseStream.Position = origBasePos;
         }
 
+        /// <inheritdoc/>
         public override bool CanRead => baseStream.CanRead;
 
+        /// <inheritdoc/>
         public override bool CanSeek => baseStream.CanSeek;
 
+        /// <inheritdoc/>
         public override bool CanWrite => false;
 
+        /// <inheritdoc/>
         public override long Length => baseStream.Length;
 
+        /// <inheritdoc/>
         public override long Position { get => baseStream.Position; set => baseStream.Position = value; }
 
+        /// <inheritdoc/>
         public override void Flush()
         {
             throw new NotSupportedException();
         }
 
+        /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
             if (buffer == null) throw new ArgumentNullException(nameof(buffer));
@@ -87,21 +105,25 @@ namespace MArchiveBatchTool.Psb
             return totalRead;
         }
 
+        /// <inheritdoc/>
         public override long Seek(long offset, SeekOrigin origin)
         {
             return baseStream.Seek(offset, origin);
         }
 
+        /// <inheritdoc/>
         public override void SetLength(long value)
         {
             throw new NotSupportedException();
         }
 
+        /// <inheritdoc/>
         public override void Write(byte[] buffer, int offset, int count)
         {
             throw new NotSupportedException();
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (disposing)

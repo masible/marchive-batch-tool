@@ -6,17 +6,47 @@ using System.IO;
 
 namespace MArchiveBatchTool.Psb
 {
+    /// <summary>
+    /// Generates key names range usage visualization.
+    /// </summary>
     public class RangeUsageAnalyzer
     {
+        /// <summary>
+        /// Represents a range node.
+        /// </summary>
         public class RangeNode
         {
+            /// <summary>
+            /// Gets or sets the parent node.
+            /// </summary>
             public RangeNode Parent { get; set; }
+            /// <summary>
+            /// Gets or sets the node index.
+            /// </summary>
             public uint Index { get; set; }
+            /// <summary>
+            /// Gets or sets the minimum value of child nodes.
+            /// </summary>
             public uint Min { get; set; }
+            /// <summary>
+            /// Gets or sets the maximum value of child nodes.
+            /// </summary>
             public uint Max { get; set; }
+            /// <summary>
+            /// Gets or sets the rank of this node.
+            /// </summary>
             public int Rank { get; set; } = -1;
+            /// <summary>
+            /// Gets the set of child nodes.
+            /// </summary>
             public HashSet<RangeNode> Children { get; } = new HashSet<RangeNode>();
+            /// <summary>
+            /// Gets or sets if node is terminal.
+            /// </summary>
             public bool IsTerminal { get; set; }
+            /// <summary>
+            /// Gets whether node is singular (only has itself as value).
+            /// </summary>
             public bool IsSingular => Min == Max;
         }
 
@@ -24,8 +54,18 @@ namespace MArchiveBatchTool.Psb
         uint maxSoFar;
         List<List<RangeNode>> coverageMap = new List<List<RangeNode>>();
 
+        /// <summary>
+        /// Gets whether nodes have been ordered.
+        /// </summary>
         public bool IsOrdered { get; private set; }
 
+        /// <summary>
+        /// Adds a new range.
+        /// </summary>
+        /// <param name="index">The index of the node.</param>
+        /// <param name="min">The minimum value of children.</param>
+        /// <param name="max">The maximum value of children.</param>
+        /// <param name="isTerminal">Whether this node is a terminal node.</param>
         public void AddRange(uint index, uint min, uint max, bool isTerminal)
         {
             if (min > max) throw new ArgumentException("min is greater than max");
@@ -36,10 +76,18 @@ namespace MArchiveBatchTool.Psb
             IsOrdered = false;
         }
 
+        /// <summary>
+        /// Orders the nodes.
+        /// </summary>
         public void OrderNodes()
         {
             // NOTE: The assumption is ranges do not cross parent ranges.
             // If they do, the results may be incorrect.
+
+            // TODO: Rewrite this with the knowledge that terminal nodes are
+            // not to be treated separately for nodes with both terminal and
+            // child nodes. Not that this visualization is particularly
+            // useful anymore.
 
             // Clear existing ordering
             IsOrdered = false;
@@ -114,6 +162,12 @@ namespace MArchiveBatchTool.Psb
             IsOrdered = true;
         }
 
+        /// <summary>
+        /// Writes visualization.
+        /// </summary>
+        /// <param name="writer">The writer to write to.</param>
+        /// <exception cref="InvalidOperationException">When the nodes have not been ordered yet.</exception>
+        /// <exception cref="NullReferenceException">When <paramref name="writer"/> is <c>null</c>.</exception>
         public void WriteVisualization(TextWriter writer)
         {
             if (!IsOrdered) throw new InvalidOperationException("Nodes not ordered yet.");

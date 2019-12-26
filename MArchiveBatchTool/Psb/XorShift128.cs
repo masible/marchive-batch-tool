@@ -16,11 +16,19 @@ namespace MArchiveBatchTool.Psb
         uint z = 521288629;
         uint w;
 
+        /// <summary>
+        /// Instantiates a new instance of <see cref="XorShift128"/>.
+        /// </summary>
+        /// <param name="seed">The seed to use to initialize the RNG.</param>
         public XorShift128(uint seed = 88675123)
         {
             w = seed;
         }
 
+        /// <summary>
+        /// Gets the next random value.
+        /// </summary>
+        /// <returns>A random unsigned 32-bit integer.</returns>
         public uint Next()
         {
             uint t = x ^ (x << 11);

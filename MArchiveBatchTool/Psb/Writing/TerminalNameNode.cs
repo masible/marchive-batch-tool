@@ -5,10 +5,17 @@ using System.Text;
 
 namespace MArchiveBatchTool.Psb.Writing
 {
+    /// <summary>
+    /// Represents a terminal name node.
+    /// </summary>
     public class TerminalNameNode : NameNode
     {
+        /// <summary>
+        /// Gets or sets the index of the key name this node constructs.
+        /// </summary>
         public uint TailIndex { get; set; }
 
+        /// <inheritdoc/>
         public override void WriteDot(TextWriter writer)
         {
             string outputChar;
