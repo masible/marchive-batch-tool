@@ -7,6 +7,10 @@ namespace MArchiveBatchTool.Psb.Writing
     /// <summary>
     /// Represents a key names encoder.
     /// </summary>
+    /// <remarks>
+    /// An encoder sets the index and offset on each name node, providing the necessary
+    /// information to create a serialized name node tree.
+    /// </remarks>
     public interface IKeyNamesEncoder
     {
         /// <summary>
