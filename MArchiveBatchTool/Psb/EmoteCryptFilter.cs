@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MArchiveBatchTool.Psb
+namespace GMWare.M2.Psb
 {
     /// <summary>
     /// Default <see cref="IPsbFilter"/> implementation for E-mote motion files.

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
-using MArchiveBatchTool.Psb;
+using GMWare.M2.Psb;
 
-namespace MArchiveBatchTool
+namespace GMWare.M2
 {
     /// <summary>
     /// Represents the <see cref="IPsbStreamSource"/> implementation used by this

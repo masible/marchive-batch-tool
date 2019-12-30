@@ -6,9 +6,9 @@ using System.IO;
 using System.CodeDom.Compiler;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using MArchiveBatchTool.Psb.Writing;
+using GMWare.M2.Psb.Writing;
 
-namespace MArchiveBatchTool.Psb
+namespace GMWare.M2.Psb
 {
 #if DEBUG
     /// <summary>

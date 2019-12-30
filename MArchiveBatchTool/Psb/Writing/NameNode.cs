@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 
-namespace MArchiveBatchTool.Psb.Writing
+namespace GMWare.M2.Psb.Writing
 {
     /// <summary>
     /// Represents a name node. This is an abstract class.

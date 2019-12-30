@@ -5,7 +5,7 @@ using System.IO.Compression;
 using System.Text;
 using Zstandard.Net;
 
-namespace MArchiveBatchTool.MArchive
+namespace GMWare.M2.MArchive
 {
     /// <summary>
     /// Represents a ZStandard codec.

@@ -5,9 +5,9 @@ using System.IO;
 using System.CodeDom.Compiler;
 using Newtonsoft.Json.Linq;
 using ICSharpCode.SharpZipLib.Checksum;
-using MArchiveBatchTool.Psb.Writing;
+using GMWare.M2.Psb.Writing;
 
-namespace MArchiveBatchTool.Psb
+namespace GMWare.M2.Psb
 {
     /// <summary>
     /// Reads a PSB file to a <see cref="JToken"/>.

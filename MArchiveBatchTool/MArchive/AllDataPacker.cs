@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using Newtonsoft.Json.Linq;
-using MArchiveBatchTool.Psb;
-using MArchiveBatchTool.Models;
+using GMWare.M2.Psb;
+using GMWare.M2.Models;
 
-namespace MArchiveBatchTool.MArchive
+namespace GMWare.M2.MArchive
 {
     /// <summary>
     /// A collection of functions for manipulating archive files.

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 
-namespace MArchiveBatchTool.MArchive
+namespace GMWare.M2.MArchive
 {
     /// <summary>
     /// Represents an MArchive codec.

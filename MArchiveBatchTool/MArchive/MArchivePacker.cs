@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 
-namespace MArchiveBatchTool.MArchive
+namespace GMWare.M2.MArchive
 {
     /// <summary>
     /// Provides functions for encrypting and decrypting MArchive encoded files.

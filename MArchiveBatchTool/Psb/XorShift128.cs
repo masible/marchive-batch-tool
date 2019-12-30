@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MArchiveBatchTool.Psb
+namespace GMWare.M2.Psb
 {
     /// <summary>
     /// Random number generator used in E-mote with custom W seed

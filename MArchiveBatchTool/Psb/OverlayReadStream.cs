@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 
-namespace MArchiveBatchTool.Psb
+namespace GMWare.M2.Psb
 {
     /// <summary>
     /// Represents a stream with a section that has been filtered by a <see cref="IPsbFilter"/>.

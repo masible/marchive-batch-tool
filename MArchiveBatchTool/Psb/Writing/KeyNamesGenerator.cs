@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MArchiveBatchTool.Psb.Writing
+namespace GMWare.M2.Psb.Writing
 {
     /// <summary>
     /// Generates key names tree.

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 
-namespace MArchiveBatchTool
+namespace GMWare.M2
 {
     /// <summary>
     /// Miscellaneous utilities.

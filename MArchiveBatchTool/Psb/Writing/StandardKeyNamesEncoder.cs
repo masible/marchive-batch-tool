@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.CodeDom.Compiler;
 
-namespace MArchiveBatchTool.Psb.Writing
+namespace GMWare.M2.Psb.Writing
 {
     /// <summary>
     /// Standard key names encoder that tries to fit ranges compactly.

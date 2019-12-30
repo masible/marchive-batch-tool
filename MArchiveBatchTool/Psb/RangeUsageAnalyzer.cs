@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace MArchiveBatchTool.Psb
+namespace GMWare.M2.Psb
 {
 #if DEBUG
     /// <summary>

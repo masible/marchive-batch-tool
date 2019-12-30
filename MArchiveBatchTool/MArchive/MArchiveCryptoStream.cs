@@ -5,7 +5,7 @@ using System.IO;
 using System.Security.Cryptography;
 using Meisui.Random;
 
-namespace MArchiveBatchTool.MArchive
+namespace GMWare.M2.MArchive
 {
     /// <summary>
     /// Represents a stream that performs inline crypto of an MArchive stream.

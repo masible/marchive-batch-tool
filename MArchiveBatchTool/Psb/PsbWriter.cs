@@ -6,9 +6,9 @@ using System.IO;
 using System.Security.Cryptography;
 using Newtonsoft.Json.Linq;
 using ICSharpCode.SharpZipLib.Checksum;
-using MArchiveBatchTool.Psb.Writing;
+using GMWare.M2.Psb.Writing;
 
-namespace MArchiveBatchTool.Psb
+namespace GMWare.M2.Psb
 {
     /// <summary>
     /// Serializes <see cref="JToken"/>s to PSB format.

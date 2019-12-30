@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace MArchiveBatchTool.Psb.Writing
+namespace GMWare.M2.Psb.Writing
 {
     /// <summary>
     /// Represents a terminal name node.
