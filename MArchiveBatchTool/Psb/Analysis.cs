@@ -10,10 +10,11 @@ using MArchiveBatchTool.Psb.Writing;
 
 namespace MArchiveBatchTool.Psb
 {
+#if DEBUG
     /// <summary>
     /// A collection of PSB analysis functions.
     /// </summary>
-    static class Analysis
+    public static class Analysis
     {
         /// <summary>
         /// Generates a GraphViz DOT file for visualizing key name nodes.
@@ -208,4 +209,5 @@ namespace MArchiveBatchTool.Psb
             }
         }
     }
+#endif
 }

@@ -6,6 +6,7 @@ using System.IO;
 
 namespace MArchiveBatchTool.Psb
 {
+#if DEBUG
     /// <summary>
     /// Generates key names range usage visualization.
     /// </summary>
@@ -206,4 +207,5 @@ namespace MArchiveBatchTool.Psb
             }
         }
     }
+#endif
 }
