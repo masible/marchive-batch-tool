@@ -11,7 +11,7 @@ names are derived from symbols contained in the library.
 
 The PSB format is a binary serialization format with an object representation
 similar to that of JSON. Aside from the basic null, boolean, number, string,
-array, and dictionary representations, PSB also supports inline binary blobs
+array, and object representations, PSB also supports inline binary blobs
 called streams. The PSB format is used extensively for storage in M2's E-mote
 SDK and the game console emulator frontend `m2engage`.
 
