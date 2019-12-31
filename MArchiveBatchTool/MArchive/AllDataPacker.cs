@@ -111,17 +111,17 @@ namespace GMWare.M2.MArchive
 
                 foreach (var file in Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories))
                 {
-                    string key = file.Replace(folderPath, string.Empty).TrimStart('/', '\\');
+                    string key = file.Replace(folderPath, string.Empty).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                     Console.WriteLine($"Packing {key}");
-                    var targetLength = (packStream.Position + ALIGNMENT - 1) / ALIGNMENT * ALIGNMENT;
-                    byte[] alignBytes = new byte[targetLength - packStream.Length];
-                    packStream.Write(alignBytes, 0, alignBytes.Length);
                     var currPos = packStream.Position;
                     using (FileStream fs = File.OpenRead(file))
                     {
                         fs.CopyTo(packStream);
                         archive.FileInfo.Add(key.Replace('\\', '/'), new List<int>() { (int)currPos, (int)fs.Length });
                     }
+                    var targetLength = (packStream.Position + ALIGNMENT - 1) / ALIGNMENT * ALIGNMENT;
+                    byte[] alignBytes = new byte[targetLength - packStream.Position];
+                    packStream.Write(alignBytes, 0, alignBytes.Length);
                 }
 
                 JToken root = JToken.FromObject(archive);
