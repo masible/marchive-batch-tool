@@ -12,6 +12,7 @@
     <PackageProjectUrl>https://gitlab.com/modmyclassic/sega-mega-drive-mini/marchive-batch-tool</PackageProjectUrl>
     <RepositoryUrl>https://gitlab.com/modmyclassic/sega-mega-drive-mini/marchive-batch-tool.git</RepositoryUrl>
     <PackageReleaseNotes>Initial release</PackageReleaseNotes>
+    <Version>1.0.1</Version>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <WarningLevel>3</WarningLevel>
