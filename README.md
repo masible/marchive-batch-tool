@@ -32,3 +32,75 @@ versions of PSB files (v1 to v4) can be serialized/deserialized. Generated PSB
 name tables are created with tight packing, and PSB optimization is supported.
 JSON.NET is used for convenience for converting deserialized PSBs to object
 instances and vice versa.
+
+## Examples
+
+### PSB Deserialization
+
+```csharp
+using (FileStream fs = File.OpenRead(psbPath))
+using (PsbReader psbReader = new PsbReader(fs))
+{
+    JToken root = psbReader.Root;
+
+    // Do what you need with root here
+}
+```
+
+Accessing `PsbReader.Root` will load the content from the PSB file.
+
+By default lazy stream loading is enabled. If you need access to streams within
+the PSB but want to dispose the reader before that, make sure to call
+`PsbReader.LoadAllStreamData()` before you dispose.
+
+### PSB Serialization
+
+```csharp
+using (Stream fs = File.Create(psbPath))
+{
+    // root: The JToken you want to serialize
+    // streamSource: The stream source, if you have JStreams that don't have
+    //               their data loaded
+    PsbWriter psbWriter = new PsbWriter(root, streamSource);
+    psbWriter.Write(fs);
+}
+```
+
+Set version, flags, and whether to optimize before you call `PsbWriter.Write()`.
+
+### MArchive
+
+```csharp
+var packer = new MArchivePacker(new ZlibCodec(), keyString, 64);
+if (File.Exists(path))
+{
+    packer.CompressFile(path);
+}
+else
+{
+    packer.CompressDirectory(path);
+}
+```
+
+The opposite functions `MArchivePacker.DecompressFile()` and
+`MArchivePacker.DecompressDirectory()` work the same way. Each of these
+functions take `keepOrig`. The `.m` or decompressed file will be deleted if
+set to `false`. Set to `true` to keep the source file.
+`MArchivePacker.CompressDirectory()` has additionally a `forceCompress`
+argument. By default there's a list of folder names where the files inside
+will not be compressed. Set to `true` to force compression.
+
+### PSB Archive resource
+
+```csharp
+var packer = new MArchivePacker(new ZlibCodec(), keyString, 64);
+AllDataPacker.UnpackFiles(archPath, extractPath, packer);
+AllDataPacker.Build(folderPath, outPath, packer);
+```
+
+For `AllDataPacker.UnpackFiles()`, you can supply either the `.bin`, `.psb`,
+or the `.psb.m` file as the input path. For `AllDataPacker.Build()`, do not
+include `.bin`, `.psb`, or `.psb.m` in the output path.
+
+Supplying a `MArchivePacker` is optional. It is used to pack the `.psb` manifest
+into a `.m` file.
