@@ -6,11 +6,11 @@
     <RootNamespace>GMWare.M2</RootNamespace>
     <AssemblyName>GMWare.M2</AssemblyName>
     <Authors>cyanic</Authors>
-    <Description>This library is designed to manipulate files in formats created by M2 Co., Ltd.</Description>
+    <Description>This library is designed to manipulate files in formats created by M2 Co., Ltd. Supports manipulating PSB, .m, and archive files.</Description>
     <Copyright>Copyright (C) 2019 Yukai Li</Copyright>
     <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
     <PackageProjectUrl>https://gitlab.com/modmyclassic/sega-mega-drive-mini/marchive-batch-tool</PackageProjectUrl>
-    <RepositoryUrl>https://gitlab.com/modmyclassic/sega-mega-drive-mini/marchive-batch-tool.git</RepositoryUrl>
+    <RepositoryUrl>https://gitlab.com/modmyclassic/sega-mega-drive-mini/marchive-batch-tool</RepositoryUrl>
     <PackageReleaseNotes>Initial release</PackageReleaseNotes>
     <Version>1.0.1</Version>
   </PropertyGroup>
