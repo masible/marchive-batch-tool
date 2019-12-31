@@ -193,10 +193,10 @@ namespace GMWare.M2.Psb
                 if (Version >= 4) headerLength += 3 * 4;
             }
             byte[] headerBytes = br.ReadBytes(headerLength);
+            if (filter != null && (Flags & PsbFlags.HeaderFiltered) != 0) filter.Filter(headerBytes);
 
             if (Version >= 3)
             {
-                if (filter != null && (Flags & PsbFlags.HeaderFiltered) != 0) filter.Filter(headerBytes);
                 uint headerChecksum = BitConverter.ToUInt32(headerBytes, 0x20);
 
                 // This is probably actually for checking that the header was decrypted successfully
@@ -237,7 +237,7 @@ namespace GMWare.M2.Psb
 
         void SetupUnfiltering()
         {
-            if (filter != null && (Version < 3 || (Flags & PsbFlags.BodyFiltered) != 0))
+            if (filter != null && (Flags & PsbFlags.BodyFiltered) != 0)
             {
                 stream = new OverlayReadStream(
                     stream,

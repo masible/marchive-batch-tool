@@ -356,7 +356,7 @@ namespace GMWare.M2.Psb
             BinaryReader br = new BinaryReader(stream);
             BinaryWriter bw = new BinaryWriter(stream);
             stream.Seek(8, SeekOrigin.Begin);
-            if (Version >= 3 && (Flags & PsbFlags.HeaderFiltered) != 0)
+            if ((Flags & PsbFlags.HeaderFiltered) != 0)
             {
                 // Filter header
                 int headerLength = (8 + 1) * 4;
@@ -367,7 +367,7 @@ namespace GMWare.M2.Psb
                 bw.Write(headerBytes);
             }
 
-            if (Version <= 2 || (Flags & PsbFlags.BodyFiltered) != 0)
+            if ((Flags & PsbFlags.BodyFiltered) != 0)
             {
                 uint filterStart = keysOffsetsOffset;
                 uint filterEnd = Version >= 4 ? bStreamsOffsetsOffset : streamsOffsetsOffset;
