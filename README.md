@@ -1,6 +1,6 @@
 # GMWare.M2
 
-![Nuget](https://img.shields.io/nuget/v/GMWare.M2)
+[![Nuget](https://img.shields.io/nuget/v/GMWare.M2)](https://www.nuget.org/packages/GMWare.M2/)
 
 This library is designed to manipulate files in formats created by M2 Co., Ltd.
 This includes the PSB format, `.m` (MArchive) format, and archive files (e.g.
