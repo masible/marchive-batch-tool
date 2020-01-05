@@ -270,6 +270,10 @@ namespace GMWare.M2.Psb
 
             foreach (var entry in cache)
             {
+                // Align stream start
+                var targetStart = (bw.BaseStream.Position + STREAM_ALIGNMENT - 1) / STREAM_ALIGNMENT * STREAM_ALIGNMENT;
+                bw.Write(new byte[targetStart - bw.BaseStream.Position]);
+
                 var stream = entry.Streams[0];
                 uint length;
                 if (stream.BinaryData != null)
@@ -289,10 +293,6 @@ namespace GMWare.M2.Psb
                 {
                     throw new Exception("No binary data for stream");
                 }
-
-                // Add memory alignment
-                uint targetLength = (uint)((length + STREAM_ALIGNMENT - 1) / STREAM_ALIGNMENT * STREAM_ALIGNMENT);
-                bw.Write(new byte[targetLength - length]);
             }
         }
 
