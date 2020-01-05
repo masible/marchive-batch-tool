@@ -34,7 +34,7 @@ namespace GMWare.M2.Psb
         /// </summary>
         Invalid,
         /// <summary>
-        /// The value <see cref="Null"/>.
+        /// The value <c>null</c>.
         /// </summary>
         Null,
         /// <summary>
