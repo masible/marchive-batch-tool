@@ -143,12 +143,12 @@ namespace GMWare.M2.Psb
                 {
                     // If stack empty or min greater than parent max, pop parent
                     // If node is non-singular, push to stack
-                    RangeNode parent;
+                    RangeNode parent = null;
                     while (true)
                     {
-                        nodeStack.TryPeek(out parent);
-                        if (parent != null)
+                        if (nodeStack.Count > 0)
                         {
+                            parent = nodeStack.Peek();
                             if (node.Min > node.Max)
                                 nodeStack.Pop();
                             else
