@@ -1,7 +1,7 @@
 ﻿// SPDX-License-Identifier: GPL-3.0-or-later
 /*
  * GMWare.M2: Library for manipulating files in formats created by M2 Co., Ltd.
- * Copyright (C) 2019  Yukai Li
+ * Copyright (C) 2019, 2020  Yukai Li
  * 
  * This file is part of GMWare.M2.
  * 
@@ -33,6 +33,7 @@ namespace GMWare.M2.Psb
         byte[] binaryDataBacking;
         uint index;
         bool isBStream;
+        bool indexSet;
 
         /// <summary>
         /// Gets the <see cref="PsbReader"/> this stream is associated with.
@@ -71,6 +72,7 @@ namespace GMWare.M2.Psb
             internal set
             {
                 index = value;
+                indexSet = true;
                 UpdateName();
             }
         }
@@ -109,6 +111,7 @@ namespace GMWare.M2.Psb
         internal JStream(uint index, bool isBStream, PsbReader parent = null) : base(string.Empty)
         {
             this.index = index;
+            indexSet = true;
             this.isBStream = isBStream;
             Reader = parent;
             UpdateName();
@@ -116,7 +119,7 @@ namespace GMWare.M2.Psb
 
         void UpdateName()
         {
-            Value = string.Format("_{0}stream:{1}", isBStream ? "b" : "", index);
+            Value = string.Format("_{0}stream:{1}", isBStream ? "b" : "", indexSet ? index.ToString() : "new");
         }
 
         /// <summary>
@@ -133,6 +136,17 @@ namespace GMWare.M2.Psb
             uint index = uint.Parse(split[1]);
             bool isBStream = split[0] == "_bstream";
             return new JStream(index, isBStream);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="JStream"/> with the given binary data.
+        /// </summary>
+        /// <param name="data">The data to set on the stream.</param>
+        /// <param name="isBStream">Whether this is a B-stream.</param>
+        /// <returns>A new stream containing the given data.</returns>
+        public static JStream FromBytes(byte[] data, bool isBStream)
+        {
+            return new JStream(isBStream) { BinaryData = data };
         }
     }
 }
