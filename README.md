@@ -64,8 +64,8 @@ using (Stream fs = File.Create(psbPath))
     // streamSource: The stream source, if you have JStreams that don't have
     //               their data loaded
     PsbWriter psbWriter = new PsbWriter(root, streamSource) {
-		Version = 4
-	};
+        Version = 4
+    };
     psbWriter.Write(fs);
 }
 ```
