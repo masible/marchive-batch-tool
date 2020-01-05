@@ -1,7 +1,7 @@
 ﻿// SPDX-License-Identifier: GPL-3.0-or-later
 /*
  * GMWare.M2: Library for manipulating files in formats created by M2 Co., Ltd.
- * Copyright (C) 2019  Yukai Li
+ * Copyright (C) 2019, 2020  Yukai Li
  * 
  * This file is part of GMWare.M2.
  * 
@@ -205,7 +205,7 @@ namespace GMWare.M2.Psb.Writing
 
             // Can't find any free slots in current map, so we need to extend
             needExtending = true;
-            return (uint)usedRangeMap.Count;
+            return Math.Max((uint)usedRangeMap.Count, minSlot);
         }
 
         void ExtendRangeMap(uint targetIndex)
