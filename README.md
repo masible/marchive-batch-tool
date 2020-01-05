@@ -63,7 +63,9 @@ using (Stream fs = File.Create(psbPath))
     // root: The JToken you want to serialize
     // streamSource: The stream source, if you have JStreams that don't have
     //               their data loaded
-    PsbWriter psbWriter = new PsbWriter(root, streamSource);
+    PsbWriter psbWriter = new PsbWriter(root, streamSource) {
+		Version = 4
+	};
     psbWriter.Write(fs);
 }
 ```
