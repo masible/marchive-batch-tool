@@ -144,8 +144,10 @@ namespace GMWare.M2.Psb
         /// <param name="data">The data to set on the stream.</param>
         /// <param name="isBStream">Whether this is a B-stream.</param>
         /// <returns>A new stream containing the given data.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="data"/> is <c>null</c>.</exception>
         public static JStream FromBytes(byte[] data, bool isBStream)
         {
+            if (data == null) throw new ArgumentNullException(nameof(data));
             return new JStream(isBStream) { BinaryData = data };
         }
     }
