@@ -1,7 +1,7 @@
 ﻿// SPDX-License-Identifier: GPL-3.0-or-later
 /*
  * GMWare.M2: Library for manipulating files in formats created by M2 Co., Ltd.
- * Copyright (C) 2019  Yukai Li
+ * Copyright (C) 2019, 2020  Yukai Li
  * 
  * This file is part of GMWare.M2.
  * 
@@ -68,8 +68,9 @@ namespace GMWare.M2.MArchive
         /// </summary>
         /// <param name="path">The path of the file to decompress.</param>
         /// <param name="keepOrig">Whether to keep the original .m file.</param>
+        /// <param name="outputStream">Stream to write to. If <c>null</c>, save to file. If not, the original file is not removed.</param>
         /// <remarks>The decompressed file is the same name but with ".m" extension removed.</remarks>
-        public void DecompressFile(string path, bool keepOrig = false)
+        public void DecompressFile(string path, bool keepOrig = false, Stream outputStream = null)
         {
             if (string.IsNullOrEmpty(path)) throw new ArgumentNullException(nameof(path));
             if (Path.GetExtension(path).ToLower() != ".m")
@@ -83,14 +84,26 @@ namespace GMWare.M2.MArchive
                 if (magic != codec.Magic) throw new ArgumentException("Codec mismatch", nameof(path));
                 int decompressedLength = br.ReadInt32();
 
-                using (FileStream ofs = File.Create(Path.ChangeExtension(path, null)))
-                using (MArchiveCryptoStream cs = new MArchiveCryptoStream(fs, path, seed, keyLength))
-                using (Stream decompStream = codec.GetDecompressionStream(cs))
+                Stream ofs = outputStream;
+                if (ofs == null)
+                    ofs = File.Create(Path.ChangeExtension(path, null));
+                else
+                    keepOrig = true;
+
+                try
                 {
-                    decompStream.CopyTo(ofs);
-                    ofs.Flush();
-                    if (ofs.Length != decompressedLength)
-                        throw new InvalidDataException("Decompressed stream length is not same as expected.");
+                    using (MArchiveCryptoStream cs = new MArchiveCryptoStream(fs, path, seed, keyLength))
+                    using (Stream decompStream = codec.GetDecompressionStream(cs))
+                    {
+                        decompStream.CopyTo(ofs);
+                        ofs.Flush();
+                        if (ofs.Length != decompressedLength)
+                            throw new InvalidDataException("Decompressed stream length is not same as expected.");
+                    }
+                }
+                finally
+                {
+                    if (outputStream == null) ofs.Close();
                 }
             }
 
@@ -102,27 +115,40 @@ namespace GMWare.M2.MArchive
         /// </summary>
         /// <param name="path">The path of the file to compress.</param>
         /// <param name="keepOrig">Whether to keep the uncompressed file.</param>
+        /// <param name="outputStream">Stream to write to. If <c>null</c>, save to file. If not, the original file is not removed.</param>
         /// <remarks>The compressed file will have ".m" extension appended.</remarks>
-        public void CompressFile(string path, bool keepOrig = false)
+        public void CompressFile(string path, bool keepOrig = false, Stream outputStream = null)
         {
             if (string.IsNullOrEmpty(path)) throw new ArgumentNullException(nameof(path));
 
             string destPath = path + ".m";
-            using (FileStream fs = File.OpenRead(path))
-            using (FileStream ofs = File.Create(destPath))
+            Stream ofs = outputStream;
+            if (ofs == null)
+                File.Create(destPath);
+            else
+                keepOrig = true;
+
+            try
             {
-                BinaryWriter bw = new BinaryWriter(ofs);
-                bw.Write(codec.Magic);
-                bw.Write((int)fs.Length);
-
-                using (MArchiveCryptoStream cs = new MArchiveCryptoStream(ofs, destPath, seed, keyLength))
-                using (Stream compStream = codec.GetCompressionStream(cs))
+                using (FileStream fs = File.OpenRead(path))
                 {
-                    fs.CopyTo(compStream);
-                }
-            }
+                    BinaryWriter bw = new BinaryWriter(ofs);
+                    bw.Write(codec.Magic);
+                    bw.Write((int)fs.Length);
 
-            if (!keepOrig) File.Delete(path);
+                    using (MArchiveCryptoStream cs = new MArchiveCryptoStream(ofs, destPath, seed, keyLength))
+                    using (Stream compStream = codec.GetCompressionStream(cs))
+                    {
+                        fs.CopyTo(compStream);
+                    }
+                }
+
+                if (!keepOrig) File.Delete(path);
+            }
+            finally
+            {
+                if (outputStream == null) ofs.Close();
+            }
         }
 
         /// <summary>
@@ -132,7 +158,7 @@ namespace GMWare.M2.MArchive
         /// <param name="keepOrig">Whether to keep the uncompressed files.</param>
         /// <param name="forceCompress">Whether to ignore no compression filters.</param>
         /// <remarks>
-        /// This is equivalent to running <see cref="CompressFile(string, bool)"/> on each
+        /// This is equivalent to running <see cref="CompressFile(string, bool,Stream)"/> on each
         /// file in <paramref name="path"/> except for files that match <see cref="NoCompressionFilters"/>.
         /// </remarks>
         public void CompressDirectory(string path, bool keepOrig = false, bool forceCompress = false)
@@ -155,7 +181,7 @@ namespace GMWare.M2.MArchive
         /// <param name="path">The path to the directory to decompress.</param>
         /// <param name="keepOrig">Whether to keep the .m files.</param>
         /// <remarks>
-        /// This is equivalent to running <see cref="DecompressFile(string, bool)"/> on each
+        /// This is equivalent to running <see cref="DecompressFile(string, bool, Stream)"/> on each
         /// file in <paramref name="path"/>.
         /// </remarks>
         public void DecompressDirectory(string path, bool keepOrig = false)
