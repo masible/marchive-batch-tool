@@ -73,8 +73,8 @@ namespace GMWare.M2.MArchive
         public void DecompressFile(string path, bool keepOrig = false, Stream outputStream = null)
         {
             if (string.IsNullOrEmpty(path)) throw new ArgumentNullException(nameof(path));
-            if (Path.GetExtension(path).ToLower() != ".m")
-                throw new ArgumentException("File is not compressed.", nameof(path));
+            //if (Path.GetExtension(path).ToLower() != ".m")
+            //    throw new ArgumentException("File is not compressed.", nameof(path));
 
             using (FileStream fs = File.OpenRead(path))
             {
@@ -93,7 +93,7 @@ namespace GMWare.M2.MArchive
                 try
                 {
                     using (MArchiveCryptoStream cs = new MArchiveCryptoStream(fs, path, seed, keyLength))
-                    using (Stream decompStream = codec.GetDecompressionStream(cs))
+                    using (Stream decompStream = codec.GetDecompressionStream(cs, decompressedLength))
                     {
                         decompStream.CopyTo(ofs);
                         ofs.Flush();
@@ -124,7 +124,7 @@ namespace GMWare.M2.MArchive
             string destPath = path + ".m";
             Stream ofs = outputStream;
             if (ofs == null)
-                File.Create(destPath);
+                ofs = File.Create(destPath);
             else
                 keepOrig = true;
 
