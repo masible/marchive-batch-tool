@@ -17,7 +17,7 @@ products using M2's emulation frontend `m2engage`.
   implementation of the default filter used for E-mote is included.
 - **MArchive**: These are compression/encryption wrappers with file extension
   `.m`. Classes for manipulating them are in `GMWare.M2.MArchive`. Codecs for
-  `mdf` (Zlib) and `mzs` (ZStandard) are included.
+  `mdf` (Zlib), `mzs` (ZStandard), and `mfl` (FastLZ) are included.
 - **PSB archive resource**: Commonly known as `alldata.bin`, the corresponding
   PSB file serves as a manifest while the `.bin` file itself contains all the
   data. The class for manipulating these files is
