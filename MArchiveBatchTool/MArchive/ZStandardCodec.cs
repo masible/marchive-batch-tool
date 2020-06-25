@@ -38,13 +38,19 @@ namespace GMWare.M2.MArchive
         /// <inheritdoc/>
         public Stream GetCompressionStream(Stream inStream)
         {
-            return new ZstandardStream(inStream, CompressionMode.Compress, true);
+            return new ZstandardStream(inStream, ZstandardStream.MaxCompressionLevel, true);
         }
 
         /// <inheritdoc/>
         public Stream GetDecompressionStream(Stream inStream)
         {
             return new ZstandardStream(inStream, CompressionMode.Decompress, true);
+        }
+
+        /// <inheritdoc/>
+        public Stream GetDecompressionStream(Stream inStream, int decompressedLength)
+        {
+            return GetDecompressionStream(inStream);
         }
     }
 }

@@ -27,7 +27,7 @@ using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 namespace GMWare.M2.MArchive
 {
     /// <summary>
-    /// Represents a Zlib codec.
+    /// Represents a DEFLATE codec.
     /// </summary>
     public class ZlibCodec : IMArchiveCodec
     {
@@ -44,6 +44,12 @@ namespace GMWare.M2.MArchive
         public Stream GetDecompressionStream(Stream inStream)
         {
             return new InflaterInputStream(inStream);
+        }
+
+        /// <inheritdoc/>
+        public Stream GetDecompressionStream(Stream inStream, int decompressedLength)
+        {
+            return GetDecompressionStream(inStream);
         }
     }
 }

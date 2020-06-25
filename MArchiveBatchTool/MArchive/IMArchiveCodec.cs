@@ -41,6 +41,13 @@ namespace GMWare.M2.MArchive
         /// <returns>A stream that can be read from to decompress <paramref name="inStream"/>.</returns>
         Stream GetDecompressionStream(Stream inStream);
         /// <summary>
+        /// Gets a decompression stream using the codec.
+        /// </summary>
+        /// <param name="inStream">The stream to decompress.</param>
+        /// <param name="decompressedLength">The length of the decompressed data.</param>
+        /// <returns>A stream that can be read from to decompress <paramref name="inStream"/>.</returns>
+        Stream GetDecompressionStream(Stream inStream, int decompressedLength);
+        /// <summary>
         /// Gets a compression stream using the codec.
         /// </summary>
         /// <param name="inStream">The stream to compress.</param>
