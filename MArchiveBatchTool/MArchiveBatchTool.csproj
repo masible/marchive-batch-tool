@@ -11,8 +11,9 @@
     <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
     <PackageProjectUrl>https://gitlab.com/modmyclassic/sega-mega-drive-mini/marchive-batch-tool</PackageProjectUrl>
     <RepositoryUrl>https://gitlab.com/modmyclassic/sega-mega-drive-mini/marchive-batch-tool</RepositoryUrl>
-    <PackageReleaseNotes>- Add option to specify stream to write to for MArchive pack/unpack</PackageReleaseNotes>
-    <Version>1.0.3</Version>
+    <PackageReleaseNotes>- Added mfl (FastLZ) support
+- Minor bug fixes</PackageReleaseNotes>
+    <Version>1.1.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
