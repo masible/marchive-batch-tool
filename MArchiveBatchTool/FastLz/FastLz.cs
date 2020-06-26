@@ -144,12 +144,13 @@ namespace FastLz
 
         static uint Cmp(byte[] x, uint xOffset, byte[] y, uint yOffset, uint length)
         {
-            for (uint i = 0; i < length - yOffset; ++i)
+            uint i;
+            for (i = 0; i < length - yOffset; ++i)
             {
                 if (x[xOffset + i] != y[yOffset + i]) return i + 1;
             }
 
-            return length;
+            return i;
         }
 
         // Copy 64-bit blocks
