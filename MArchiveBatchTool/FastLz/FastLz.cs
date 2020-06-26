@@ -176,7 +176,7 @@ namespace FastLz
 
         static ushort Hash(uint v)
         {
-            uint h = (uint)((v * 2654435769l) >> (32 - HASH_LOG));
+            uint h = (uint)((v * 2654435769L) >> (32 - HASH_LOG));
             return (ushort)(h & HASH_MASK);
         }
 
