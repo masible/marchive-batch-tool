@@ -439,13 +439,13 @@ namespace MArchiveBatchTool.Psb
             switch (typeId)
             {
                 case 9:
-                    value = br.ReadUInt32() | (br.ReadSByte() << 32);
+                    value = br.ReadUInt32() | ((long)br.ReadSByte() << 32);
                     break;
                 case 10:
-                    value = br.ReadUInt32() | (br.ReadInt16() << 32);
+                    value = br.ReadUInt32() | ((long)br.ReadInt16() << 32);
                     break;
                 case 11:
-                    value = br.ReadUInt32() | (br.ReadUInt16() << 32) | (br.ReadSByte() << 48);
+                    value = br.ReadUInt32() | ((long)br.ReadUInt16() << 32) | ((long)br.ReadSByte() << 48);
                     break;
                 case 12:
                     value = br.ReadInt64();
