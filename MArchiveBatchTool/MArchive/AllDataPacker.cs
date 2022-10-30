@@ -86,7 +86,7 @@ namespace MArchiveBatchTool.MArchive
                 ArchiveV1 archive = new ArchiveV1();
                 archive.ObjectType = "archive";
                 archive.Version = 1.0f;
-                archive.FileInfo = new Dictionary<string, List<int>>();
+                archive.FileInfo = new Dictionary<string, List<long>>();
                 folderPath = Path.GetFullPath(folderPath);
 
                 foreach (var file in Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories))
@@ -100,7 +100,7 @@ namespace MArchiveBatchTool.MArchive
                     using (FileStream fs = File.OpenRead(file))
                     {
                         fs.CopyTo(packStream);
-                        archive.FileInfo.Add(key.Replace('\\', '/'), new List<int>() { (int)currPos, (int)fs.Length });
+                        archive.FileInfo.Add(key.Replace('\\', '/'), new List<long>() { currPos, fs.Length });
                     }
                 }
 

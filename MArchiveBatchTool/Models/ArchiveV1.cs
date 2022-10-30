@@ -28,7 +28,7 @@ namespace MArchiveBatchTool.Models
         /// file, and the second <c>int</c> is the length of the file.
         /// </remarks>
         [JsonProperty("file_info")]
-        public Dictionary<string, List<int>> FileInfo { get; set; }
+        public Dictionary<string, List<long>> FileInfo { get; set; }
         /// <summary>
         /// Gets or sets the expire suffixes list.
         /// </summary>
